@@ -1,5 +1,4 @@
 
-
 /**
  * @license
  * SPDX-License-Identifier: Apache-2.0
@@ -19,6 +18,7 @@ const JUMP_FORCE = 27; // High force to compensate gravity
 const LANDING_DURATION = 0.15; // Time for landing squash animation
 const AIR_CONTROL_FACTOR = 8; // Slower lerp in air for "floaty" control feel
 const GROUND_CONTROL_FACTOR = 20; // Snappy lerp on ground
+const SLIDE_DURATION = 0.8; // Seconds
 
 // Static Geometries
 const TORSO_GEO = new THREE.CylinderGeometry(0.25, 0.15, 0.6, 4);
@@ -43,7 +43,7 @@ export const Player: React.FC = () => {
   const rightLegRef = useRef<THREE.Group>(null);
   const headRef = useRef<THREE.Group>(null);
 
-  const { status, laneCount, takeDamage, hasDoubleJump, hasHover, activateInvincibilityAbility, isInvincible, damageShieldDuration, visualLevel } = useStore();
+  const { status, laneCount, takeDamage, hasDoubleJump, hasHover, activateInvincibilityAbility, isInvincible, damageShieldDuration, visualLevel, setSliding } = useStore();
   
   const [lane, setLane] = React.useState(0);
   const targetX = useRef(0);
@@ -57,6 +57,10 @@ export const Player: React.FC = () => {
   // Hover State
   const hoverTimer = useRef(0);
   const isHovering = useRef(false);
+
+  // Slide State
+  const slideTimer = useRef(0);
+  const isSlidingRef = useRef(false); // Local ref for loop
 
   // Animation State
   const jumpBuffer = useRef(0);
@@ -96,13 +100,18 @@ export const Player: React.FC = () => {
           jumpBuffer.current = 0;
           wasAirborne.current = false;
           lastStepTime.current = 0;
+          isSlidingRef.current = false;
+          slideTimer.current = 0;
+          setSliding(false);
+          
           if (groupRef.current) groupRef.current.position.y = 0;
           if (bodyRef.current) {
               bodyRef.current.rotation.x = 0;
               bodyRef.current.scale.set(1, 1, 1);
+              bodyRef.current.position.y = 1.1;
           }
       }
-  }, [status]);
+  }, [status, setSliding]);
   
   // Safety: Clamp lane if laneCount changes
   useEffect(() => {
@@ -113,6 +122,8 @@ export const Player: React.FC = () => {
   }, [laneCount, lane]);
 
   const performJump = useCallback(() => {
+        if (isSlidingRef.current) return; // Cannot jump while sliding
+        
         audio.playJump(false);
         isJumping.current = true;
         jumpsPerformed.current = 1;
@@ -122,8 +133,22 @@ export const Player: React.FC = () => {
         if(bodyRef.current) bodyRef.current.scale.setScalar(1);
   }, []);
 
+  const triggerSlide = useCallback(() => {
+      if (isJumping.current) {
+          // Fast fall if in air
+          velocityY.current = -30;
+      }
+      
+      isSlidingRef.current = true;
+      slideTimer.current = SLIDE_DURATION;
+      setSliding(true);
+      // audio.playSlide(); // TODO: Add slide sound
+  }, [setSliding]);
+
   // --- Controls (Keyboard & Touch) ---
   const triggerJump = useCallback(() => {
+    if (isSlidingRef.current) return;
+    
     const maxJumps = (hasDoubleJump || hasHover) ? 2 : 1;
 
     if (!isJumping.current) {
@@ -160,12 +185,13 @@ export const Player: React.FC = () => {
       if (e.key === 'ArrowLeft') setLane(l => Math.max(l - 1, -maxLane));
       else if (e.key === 'ArrowRight') setLane(l => Math.min(l + 1, maxLane));
       else if (e.key === 'ArrowUp' || e.key === 'w' || e.key === ' ') triggerJump();
+      else if (e.key === 'ArrowDown' || e.key === 's') triggerSlide();
       else if (e.key === 'Enter') activateInvincibilityAbility();
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [status, laneCount, triggerJump, activateInvincibilityAbility]);
+  }, [status, laneCount, triggerJump, activateInvincibilityAbility, triggerSlide]);
 
   useEffect(() => {
     const handleTouchStart = (e: TouchEvent) => {
@@ -186,8 +212,9 @@ export const Player: React.FC = () => {
         if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 30) {
              if (deltaX > 0) setLane(l => Math.min(l + 1, maxLane));
              else setLane(l => Math.max(l - 1, -maxLane));
-        } else if (Math.abs(deltaY) > Math.abs(deltaX) && deltaY < -30) {
-            triggerJump();
+        } else if (Math.abs(deltaY) > Math.abs(deltaX)) {
+             if (deltaY < -30) triggerJump();
+             else if (deltaY > 30) triggerSlide();
         } else if (Math.abs(deltaX) < 10 && Math.abs(deltaY) < 10) {
             activateInvincibilityAbility();
         }
@@ -195,7 +222,7 @@ export const Player: React.FC = () => {
 
     window.addEventListener('touchend', handleTouchEnd);
     return () => window.removeEventListener('touchend', handleTouchEnd);
-  }, [status, laneCount, triggerJump, activateInvincibilityAbility]);
+  }, [status, laneCount, triggerJump, activateInvincibilityAbility, triggerSlide]);
 
   // --- Animation Loop ---
   useFrame((state, delta) => {
@@ -210,7 +237,17 @@ export const Player: React.FC = () => {
     const lerpSpeed = isJumping.current ? AIR_CONTROL_FACTOR : GROUND_CONTROL_FACTOR;
     groupRef.current.position.x = THREE.MathUtils.lerp(groupRef.current.position.x, targetX.current, safeDelta * lerpSpeed);
 
-    // 2. Physics (Jump & Hover)
+    // 2. Physics (Jump, Hover, Slide)
+    
+    // Slide Logic
+    if (isSlidingRef.current) {
+        slideTimer.current -= safeDelta;
+        if (slideTimer.current <= 0) {
+            isSlidingRef.current = false;
+            setSliding(false);
+        }
+    }
+
     if (isJumping.current) {
         wasAirborne.current = true;
         
@@ -268,18 +305,24 @@ export const Player: React.FC = () => {
     // 3. Animation Control
     const time = state.clock.elapsedTime * 25; 
 
-    // Landing Animation (Squash)
-    if (landingTimer.current > 0) {
-        landingTimer.current -= safeDelta;
-        const t = 1 - (landingTimer.current / LANDING_DURATION); 
-        // Squash curve: 0 -> -0.3 -> 0
-        const squash = Math.sin(t * Math.PI) * 0.3; 
-        if (bodyRef.current) {
+    // Slide Squash Animation
+    if (bodyRef.current) {
+        if (isSlidingRef.current && !isJumping.current) {
+            // Squash for slide
+            bodyRef.current.scale.lerp(new THREE.Vector3(1.2, 0.5, 1.2), safeDelta * 15);
+            bodyRef.current.position.y = THREE.MathUtils.lerp(bodyRef.current.position.y, 0.6, safeDelta * 15);
+        } else if (landingTimer.current > 0) {
+            // Landing Squash
+            landingTimer.current -= safeDelta;
+            const t = 1 - (landingTimer.current / LANDING_DURATION); 
+            const squash = Math.sin(t * Math.PI) * 0.3; 
             bodyRef.current.scale.set(1 + squash * 0.4, 1 - squash * 0.4, 1 + squash * 0.4);
+            bodyRef.current.position.y = 1.1;
+        } else if (!isJumping.current) {
+             // Return to normal
+            bodyRef.current.scale.lerp(new THREE.Vector3(1,1,1), safeDelta * 10);
+            bodyRef.current.position.y = THREE.MathUtils.lerp(bodyRef.current.position.y, 1.1, safeDelta * 10);
         }
-    } else if (bodyRef.current && !isJumping.current) {
-        // Return to normal scale if not jumping
-        bodyRef.current.scale.lerp(new THREE.Vector3(1,1,1), safeDelta * 10);
     }
     
     // Limb Animations
@@ -300,13 +343,23 @@ export const Player: React.FC = () => {
                  bodyRef.current.scale.lerp(new THREE.Vector3(0.9, 1.1, 0.9), safeDelta * 5);
             }
         }
+    } else if (isSlidingRef.current && bodyRef.current) {
+         // Slide Pose: Legs forward, arms back
+         if (leftLegRef.current) leftLegRef.current.rotation.x = -1.5;
+         if (rightLegRef.current) rightLegRef.current.rotation.x = -1.5;
+         if (leftArmRef.current) leftArmRef.current.rotation.x = 0.5;
+         if (rightArmRef.current) rightArmRef.current.rotation.x = 0.5;
+         if (bodyRef.current) bodyRef.current.rotation.x = -0.2; // Slight lean back
     } else {
         // Run Cycle
         if (leftArmRef.current) leftArmRef.current.rotation.x = Math.sin(time) * 0.7;
         if (rightArmRef.current) rightArmRef.current.rotation.x = Math.sin(time + Math.PI) * 0.7;
         if (leftLegRef.current) leftLegRef.current.rotation.x = Math.sin(time + Math.PI) * 1.0;
         if (rightLegRef.current) rightLegRef.current.rotation.x = Math.sin(time) * 1.0;
-        if (bodyRef.current) bodyRef.current.position.y = 1.1 + Math.abs(Math.sin(time)) * 0.15;
+        if (bodyRef.current) {
+            bodyRef.current.position.y = 1.1 + Math.abs(Math.sin(time)) * 0.15;
+            bodyRef.current.rotation.x = 0.2; // Forward lean running
+        }
     }
 
     // 4. Dynamic Shadow

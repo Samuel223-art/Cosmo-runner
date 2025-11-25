@@ -28,13 +28,12 @@ const ForestFloor = () => {
 const ForestTerrain = () => {
     const { laneCount } = useStore.getState();
     const terrainGeo = useMemo(() => {
-        const width = 160; const length = CHUNK_LENGTH_FOREST; const widthSegments = 60; const lengthSegments = 100;
+        const width = 160; const length = CHUNK_LENGTH_FOREST; const widthSegments = 40; const lengthSegments = 60;
         const geo = new THREE.PlaneGeometry(width, length, widthSegments, lengthSegments);
         const { position } = geo.attributes;
         for (let i = 0; i < position.count; i++) {
             const x = position.getX(i); const y = position.getY(i);
             const edgeFactor = 1 - Math.pow(Math.abs(x) / (width / 2), 2);
-            // Prominent hills in the distance
             const randomHeight = (Math.sin(y * 0.05 + x * 0.02) + Math.cos(y * 0.03)) * 25;
             position.setZ(i, (position.getZ(i) + randomHeight) * edgeFactor);
         }
@@ -73,11 +72,10 @@ const ForestTrees = () => {
     const trees = useMemo(() => {
         const temp: { position: [number, number, number], scale: number, type: 'pine' | 'deciduous' }[] = [];
         const baseOffset = (laneCount * LANE_WIDTH / 2);
-        for (let i = 0; i < 150; i++) {
+        for (let i = 0; i < 60; i++) { // Reduced count
             const side = Math.random() > 0.5 ? 1 : -1;
             const x = side * (baseOffset + 10 + Math.random() * 150);
             const z = -Math.random() * CHUNK_LENGTH_FOREST;
-            // Place trees slightly higher to account for potential hilliness at the base edges
             const y = -0.5;
             temp.push({ position: [x, y, z], scale: 1.8 + Math.random() * 2.8, type: Math.random() > 0.5 ? 'pine' : 'deciduous' });
         }
@@ -85,15 +83,15 @@ const ForestTrees = () => {
     }, [laneCount]);
 
     // Deciduous Tree
-    const trunkGeo = useMemo(() => new THREE.CylinderGeometry(0.1, 0.2, 1.5, 5), []);
+    const trunkGeo = useMemo(() => new THREE.CylinderGeometry(0.1, 0.2, 1.5, 4), []);
     const leavesGeo = useMemo(() => new THREE.IcosahedronGeometry(0.8, 0), []);
     const trunkMat = useMemo(() => new THREE.MeshStandardMaterial({ color: '#6e4a2e' }), []);
     const leavesMat = useMemo(() => new THREE.MeshStandardMaterial({ color: '#2E8B57', flatShading: true }), []);
 
     // Pine Tree
-    const pineLeavesGeo1 = useMemo(() => new THREE.ConeGeometry(1.0, 1.5, 6), []);
-    const pineLeavesGeo2 = useMemo(() => new THREE.ConeGeometry(0.8, 1.2, 6), []);
-    const pineLeavesGeo3 = useMemo(() => new THREE.ConeGeometry(0.6, 1.0, 6), []);
+    const pineLeavesGeo1 = useMemo(() => new THREE.ConeGeometry(1.0, 1.5, 5), []);
+    const pineLeavesGeo2 = useMemo(() => new THREE.ConeGeometry(0.8, 1.2, 5), []);
+    const pineLeavesGeo3 = useMemo(() => new THREE.ConeGeometry(0.6, 1.0, 5), []);
     const pineTrunkMat = useMemo(() => new THREE.MeshStandardMaterial({ color: '#4a2c2a' }), []);
     const pineLeavesMat = useMemo(() => new THREE.MeshStandardMaterial({ color: '#1a4d2e', flatShading: true }), []);
 
@@ -120,12 +118,12 @@ const ForestTrees = () => {
     );
 };
 
-const ForestMotes = () => <CrystalCaveParticles color="#e0f2fe" />; // Light blue motes
+const ForestMotes = () => <CrystalCaveParticles color="#e0f2fe" />;
 
 const ParallaxHills = React.forwardRef<THREE.Group, { position: [number, number, number] }>((props, ref) => {
     const hills = useMemo(() => {
         const temp = [];
-        for (let i = 0; i < 15; i++) {
+        for (let i = 0; i < 8; i++) { // Reduced count
             const side = Math.random() > 0.5 ? 1 : -1;
             const x = side * (250 + Math.random() * 200);
             const z = -Math.random() * CHUNK_LENGTH_FOREST;
@@ -139,7 +137,7 @@ const ParallaxHills = React.forwardRef<THREE.Group, { position: [number, number,
         <group ref={ref} {...props}>
              {hills.map((m, i) => (
                  <mesh key={i} position={m.pos as any} scale={m.scale as any}>
-                     <sphereGeometry args={[1, 32, 16]} />
+                     <sphereGeometry args={[1, 16, 8]} />
                      <meshStandardMaterial color="#064e3b" roughness={0.9} fog={false} />
                  </mesh>
              ))}
@@ -181,7 +179,6 @@ const EnchantedForestEnvironment = () => {
     const bgRef1 = useRef<THREE.Group>(null);
     const bgRef2 = useRef<THREE.Group>(null);
 
-    // Audio Ambience Management
     useEffect(() => {
         audio.startForestAmbience();
         return () => {
@@ -192,7 +189,6 @@ const EnchantedForestEnvironment = () => {
     useFrame((state, delta) => {
         const movement = speed * delta;
         
-        // Foreground
         if (contentRef1.current) {
             contentRef1.current.position.z += movement;
             if (contentRef1.current.position.z > CHUNK_LENGTH_FOREST) {
@@ -206,8 +202,7 @@ const EnchantedForestEnvironment = () => {
             }
         }
 
-        // Parallax Background
-        const bgMovement = movement * 0.15; // Slightly faster parallax for hills
+        const bgMovement = movement * 0.15;
         if (bgRef1.current) {
             bgRef1.current.position.z += bgMovement;
             if (bgRef1.current.position.z > CHUNK_LENGTH_FOREST) {

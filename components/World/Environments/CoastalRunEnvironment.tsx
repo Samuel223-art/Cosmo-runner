@@ -1,5 +1,4 @@
 
-
 /**
  * @license
  * SPDX-License-Identifier: Apache-2.0
@@ -34,7 +33,7 @@ const WaterFloor = () => {
 
     return (
         <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.5, -150]}>
-            <planeGeometry args={[300, 400, 100, 100]} />
+            <planeGeometry args={[300, 400, 50, 50]} />
             <shaderMaterial
                 ref={matRef}
                 uniforms={uniforms}
@@ -93,26 +92,16 @@ const WaterFloor = () => {
                     }
 
                     void main() {
-                        // Animated Caustics Pattern
-                        vec2 uv = vUv * 15.0; // Higher density for web-like look
+                        vec2 uv = vUv * 15.0; 
                         float t = uTime * 0.4;
-                        
-                        // Domain warping for fluid look
                         vec2 q = vec2(snoise(uv + vec2(0.0, t)), snoise(uv + vec2(5.2, 1.3)));
                         vec2 r = vec2(snoise(uv + 4.0 * q + vec2(1.7, 9.2) - t), snoise(uv + 2.0 * q + vec2(8.3, 2.8)));
                         float n = snoise(uv + 4.0 * r);
-
-                        // Sharpen noise to create lines
                         float caustic = smoothstep(0.65, 0.85, n * 0.5 + 0.5); 
-                        
-                        // Base color mix
                         vec3 deepColor = vec3(0.0, 0.3, 0.7);
                         vec3 shallowColor = vec3(0.0, 0.8, 0.9);
                         vec3 finalColor = mix(deepColor, shallowColor, vElevation / uWaveHeight * 0.5 + 0.5);
-                        
-                        // Add bright caustics
                         finalColor += vec3(0.8, 0.9, 1.0) * caustic * 0.6;
-                        
                         float fresnel = 1.0 - abs(vElevation / uWaveHeight);
                         gl_FragColor = vec4(finalColor, 0.7 + fresnel * 0.3);
                     }
@@ -130,7 +119,7 @@ const FoamParticles = () => {
     
     const particles = useMemo(() => {
         const temp = [];
-        for (let i = 0; i < 300; i++) {
+        for (let i = 0; i < 100; i++) { // Reduced count
             temp.push({ 
                 x: (Math.random() - 0.5) * 200, 
                 y: -0.5, 
@@ -148,10 +137,7 @@ const FoamParticles = () => {
         const moveSpeed = speed > 0 ? speed : 2;
 
         particles.forEach((p, i) => {
-            // Move with world
             p.z += moveSpeed * delta;
-            
-            // Rise and fade
             p.life -= delta * 0.5;
             p.y += delta * p.speed;
             
@@ -163,7 +149,7 @@ const FoamParticles = () => {
             }
 
             dummy.position.set(p.x, p.y, p.z);
-            dummy.scale.setScalar(p.scale * p.life); // Fade out size
+            dummy.scale.setScalar(p.scale * p.life);
             dummy.updateMatrix();
             instancedMeshRef.current!.setMatrixAt(i, dummy.matrix);
         });
@@ -181,7 +167,7 @@ const FoamParticles = () => {
 const BeachTerrain = () => {
     const { laneCount } = useStore.getState();
     const terrainGeo = useMemo(() => {
-        const width = 160; const length = 400; const widthSegments = 60; const lengthSegments = 100;
+        const width = 160; const length = 400; const widthSegments = 40; const lengthSegments = 60;
         const geo = new THREE.PlaneGeometry(width, length, widthSegments, lengthSegments);
         const { position } = geo.attributes;
         for (let i = 0; i < position.count; i++) {
@@ -225,7 +211,7 @@ const LowPolyTrees = () => {
     const trees = useMemo(() => {
         const temp: { position: [number, number, number], scale: number }[] = [];
         const baseOffset = (laneCount * LANE_WIDTH / 2);
-        for (let i = 0; i < 120; i++) {
+        for (let i = 0; i < 60; i++) { // Reduced count
             const side = Math.random() > 0.5 ? 1 : -1;
             const x = side * (baseOffset + 5 + Math.random() * 150);
             const z = -Math.random() * 400;
@@ -235,7 +221,7 @@ const LowPolyTrees = () => {
         return temp;
     }, [laneCount]);
 
-    const trunkGeo = useMemo(() => new THREE.CylinderGeometry(0.1, 0.2, 1.5, 5), []);
+    const trunkGeo = useMemo(() => new THREE.CylinderGeometry(0.1, 0.2, 1.5, 4), []);
     const leavesGeo = useMemo(() => new THREE.IcosahedronGeometry(0.8, 0), []);
     const trunkMat = useMemo(() => new THREE.MeshStandardMaterial({ color: '#6e4a2e' }), []);
     const leavesMat = useMemo(() => new THREE.MeshStandardMaterial({ color: '#2E8B57', flatShading: true }), []);
@@ -303,15 +289,11 @@ const CloudShadows = () => {
                     }
 
                     void main() {
-                        // Slow drifting clouds
                         vec2 uv = vUv * 4.0 + vec2(uTime * 0.05, uTime * 0.02);
                         float n = snoise(uv);
                         n += 0.5 * snoise(uv * 2.0);
-                        
-                        // Soft shadows
                         float shadow = smoothstep(0.4, 0.8, n);
-                        
-                        gl_FragColor = vec4(0.0, 0.0, 0.0, shadow * 0.3); // Black with transparency
+                        gl_FragColor = vec4(0.0, 0.0, 0.0, shadow * 0.3);
                     }
                 `}
             />
@@ -326,14 +308,12 @@ interface SeagullProps {
     isActive: boolean;
     startPos: THREE.Vector3;
     velocity: THREE.Vector3;
-    offset: number; // For flap timing variation
+    offset: number; 
 }
 
 const SeagullFlock = () => {
-    // Manage a pool of seagulls. We want a flock of ~3-5 birds.
-    // Pool size is larger to handle multiple waves if needed, though rare.
     const [seagulls, setSeagulls] = useState<SeagullProps[]>(
-        Array.from({length: 10}).map((_, i) => ({ 
+        Array.from({length: 6}).map((_, i) => ({ 
             id: i, 
             isActive: false, 
             startPos: new THREE.Vector3(), 
@@ -343,22 +323,19 @@ const SeagullFlock = () => {
     );
     
     const lastSpawnTime = useRef(0);
-    const nextSpawnDelay = useRef(5); // Initial delay short
+    const nextSpawnDelay = useRef(5);
 
     useFrame((state, delta) => {
-        // Spawn logic: Spawn a flock "once in a while" (15-25 seconds)
         if (state.clock.elapsedTime - lastSpawnTime.current > nextSpawnDelay.current) {
             lastSpawnTime.current = state.clock.elapsedTime;
-            nextSpawnDelay.current = 15 + Math.random() * 10; // Random delay between 15-25s
+            nextSpawnDelay.current = 15 + Math.random() * 10; 
 
-            // Spawn a flock of exactly 3 or 4 birds
-            const flockSize = 3 + Math.floor(Math.random() * 2); // 3 or 4
+            const flockSize = 2 + Math.floor(Math.random() * 2); // 2 or 3
             const side = Math.random() > 0.5 ? 1 : -1;
-            const startX = side * (60 + Math.random() * 20); // Start off-screen
+            const startX = side * (60 + Math.random() * 20); 
             const startY = 15 + Math.random() * 10;
             const startZ = -20 - Math.random() * 60;
             
-            // Base Velocity
             const speed = 15 + Math.random() * 5;
             const baseVelX = -side * speed; 
             const baseVelZ = (Math.random() - 0.5) * 5;
@@ -371,15 +348,14 @@ const SeagullFlock = () => {
                     newSeagulls[i] = {
                         ...newSeagulls[i],
                         isActive: true,
-                        // Offset each bird slightly to form a flock
                         startPos: new THREE.Vector3(
                             startX + (Math.random() - 0.5) * 10,
                             startY + (Math.random() - 0.5) * 5,
                             startZ + (Math.random() - 0.5) * 10
                         ),
                         velocity: new THREE.Vector3(
-                            baseVelX + (Math.random() - 0.5), // slight speed variance
-                            (Math.random() - 0.5) * 2, // slight vertical drift
+                            baseVelX + (Math.random() - 0.5), 
+                            (Math.random() - 0.5) * 2, 
                             baseVelZ + (Math.random() - 0.5)
                         )
                     };
@@ -389,7 +365,6 @@ const SeagullFlock = () => {
             }
             setSeagulls(newSeagulls);
             
-            // Play the call sound once for the whole flock
             audio.playSeagull();
         }
     });
@@ -413,11 +388,9 @@ const Seagull: React.FC<{ data: SeagullProps, onComplete: () => void }> = ({ dat
     const rightWingRef = useRef<THREE.Group>(null);
     const lastFlapRef = useRef(0);
 
-    // Initial positioning
     useEffect(() => {
         if (data.isActive && groupRef.current) {
             groupRef.current.position.copy(data.startPos);
-            // Look direction (velocity)
             const lookTarget = data.startPos.clone().add(data.velocity);
             groupRef.current.lookAt(lookTarget);
         }
@@ -426,29 +399,21 @@ const Seagull: React.FC<{ data: SeagullProps, onComplete: () => void }> = ({ dat
     useFrame((state, delta) => {
         if (!data.isActive || !groupRef.current) return;
 
-        // Move
         groupRef.current.position.addScaledVector(data.velocity, delta);
 
-        // Animate wings
-        // Flap Speed = ~3Hz (approx 18 rad/s)
         const flapCycle = Math.sin(state.clock.elapsedTime * 18 + data.offset);
         const flapAngle = flapCycle * 0.5;
 
         if (leftWingRef.current) leftWingRef.current.rotation.z = flapAngle;
         if (rightWingRef.current) rightWingRef.current.rotation.z = -flapAngle;
 
-        // Trigger Flap Sound at the peak of the downstroke (approx when sin goes negative)
-        // We use a simple latch to prevent multiple triggers per frame
         if (flapCycle < -0.8 && state.clock.elapsedTime - lastFlapRef.current > 0.3) {
             lastFlapRef.current = state.clock.elapsedTime;
-            // Lower volume for distant birds would be ideal, but simple trigger is okay
-            // Only play if somewhat close to Z=0 to avoid noise pollution
             if (groupRef.current.position.z > -150 && groupRef.current.position.z < 50) {
                  audio.playWingFlap();
             }
         }
 
-        // Check bounds (if it flew off screen)
         if (Math.abs(groupRef.current.position.x) > 120) {
             onComplete();
         }
@@ -458,21 +423,16 @@ const Seagull: React.FC<{ data: SeagullProps, onComplete: () => void }> = ({ dat
 
     return (
         <group ref={groupRef}>
-            {/* Body */}
             <mesh rotation={[Math.PI/2, 0, 0]}>
-                <coneGeometry args={[0.2, 1, 8]} />
+                <coneGeometry args={[0.2, 1, 6]} />
                 <meshStandardMaterial color="#ffffff" />
             </mesh>
-            
-            {/* Left Wing Pivot */}
             <group position={[0, 0, 0]} ref={leftWingRef}>
                  <mesh position={[0.6, 0, 0]} rotation={[0, 0, 0]}>
                     <boxGeometry args={[1.2, 0.05, 0.4]} />
                     <meshStandardMaterial color="#eeeeee" />
                  </mesh>
             </group>
-
-            {/* Right Wing Pivot */}
             <group position={[0, 0, 0]} ref={rightWingRef}>
                  <mesh position={[-0.6, 0, 0]} rotation={[0, 0, 0]}>
                     <boxGeometry args={[1.2, 0.05, 0.4]} />
@@ -489,7 +449,7 @@ const CoastalParticles = () => <CrystalCaveParticles color="#00ffff" />;
 const DistantIslands = React.forwardRef<THREE.Group, { position: [number, number, number] }>((props, ref) => {
     const islands = useMemo(() => {
         const temp = [];
-        for (let i = 0; i < 6; i++) {
+        for (let i = 0; i < 4; i++) {
             const side = Math.random() > 0.5 ? 1 : -1;
             const x = side * (150 + Math.random() * 200);
             const z = -Math.random() * CHUNK_LENGTH_COASTAL;
@@ -503,7 +463,7 @@ const DistantIslands = React.forwardRef<THREE.Group, { position: [number, number
         <group ref={ref} {...props}>
              {islands.map((m, i) => (
                  <mesh key={i} position={m.pos as any} scale={m.scale as any}>
-                     <dodecahedronGeometry args={[1, 1]} />
+                     <dodecahedronGeometry args={[1, 0]} />
                      <meshStandardMaterial color="#1e293b" roughness={1} fog={true} />
                  </mesh>
              ))}
@@ -514,13 +474,11 @@ const DistantIslands = React.forwardRef<THREE.Group, { position: [number, number
 const ParallaxMountains = React.forwardRef<THREE.Group, { position: [number, number, number] }>((props, ref) => {
     const mountains = useMemo(() => {
         const temp = [];
-        for (let i = 0; i < 16; i++) {
+        for (let i = 0; i < 8; i++) {
             const side = Math.random() > 0.5 ? 1 : -1;
-            // Spread further out to frame the horizon
             const x = side * (200 + Math.random() * 300); 
             const z = -Math.random() * CHUNK_LENGTH_COASTAL;
             
-            // Random scaling for jagged look
             const scaleX = 80 + Math.random() * 100;
             const scaleY = 60 + Math.random() * 80;
             const scaleZ = 80 + Math.random() * 100;
@@ -538,7 +496,6 @@ const ParallaxMountains = React.forwardRef<THREE.Group, { position: [number, num
         <group ref={ref} {...props}>
              {mountains.map((m, i) => (
                  <mesh key={i} position={m.pos as any} scale={m.scale as any} rotation={m.rot as any}>
-                     {/* Tetrahedron for jagged, mountain-like shape */}
                      <tetrahedronGeometry args={[1, 0]} />
                      <meshStandardMaterial color="#1e1b4b" roughness={0.9} fog={true} />
                  </mesh>
@@ -555,7 +512,7 @@ const DynamicSkyClouds = () => {
 
     return (
         <mesh position={[0, 50, 0]} rotation={[-Math.PI/2, 0, 0]}>
-            <sphereGeometry args={[400, 32, 16]} />
+            <sphereGeometry args={[400, 16, 12]} />
             <shaderMaterial 
                 ref={matRef}
                 side={THREE.BackSide}
@@ -568,8 +525,6 @@ const DynamicSkyClouds = () => {
                 fragmentShader={`
                     uniform float uTime;
                     varying vec2 vUv;
-                    
-                    // Simple noise function
                     float hash(vec2 p) { return fract(1e4 * sin(17.0 * p.x + p.y * 0.1) * (0.1 + abs(sin(p.y * 13.0 + p.x)))); }
                     float noise(vec2 x) {
                         vec2 i = floor(x);
@@ -581,26 +536,16 @@ const DynamicSkyClouds = () => {
                         vec2 u = f * f * (3.0 - 2.0 * f);
                         return mix(a, b, u.x) + (c - a) * u.y * (1.0 - u.x) + (d - b) * u.x * u.y;
                     }
-
                     void main() {
                         vec2 uv = vUv * 6.0;
                         float t = uTime * 0.05;
-                        
                         float n = noise(uv + vec2(t, t * 0.5));
                         n += 0.5 * noise(uv * 2.0 + vec2(-t, t));
-                        
                         float cloud = smoothstep(0.4, 0.8, n);
-                        vec3 skyColor = vec3(0.53, 0.81, 0.92); // Sky blue
-                        vec3 cloudColor = vec3(1.0, 0.9, 0.95); // White/Pinkish
-                        
-                        // Add emissive glow at edges
+                        vec3 skyColor = vec3(0.53, 0.81, 0.92); 
+                        vec3 cloudColor = vec3(1.0, 0.9, 0.95); 
                         cloudColor += vec3(0.2, 0.1, 0.3) * cloud;
-
                         vec3 finalColor = mix(skyColor, cloudColor, cloud * 0.8);
-                        
-                        // Fade to horizon
-                        float horizon = smoothstep(0.48, 0.52, vUv.y); // Sphere UV y goes 0-1
-                        
                         gl_FragColor = vec4(finalColor, 1.0); 
                     }
                 `}
@@ -646,12 +591,9 @@ const CoastalRunEnvironment = () => {
     const contentRef2 = useRef<THREE.Group>(null);
     const bgRef1 = useRef<THREE.Group>(null);
     const bgRef2 = useRef<THREE.Group>(null);
-    
-    // Player Splash Detection
     const playerY = useRef(0);
     const prevPlayerY = useRef(0);
 
-    // Audio Ambience Management
     useEffect(() => {
         audio.startCoastalAmbience();
         return () => {
@@ -661,7 +603,6 @@ const CoastalRunEnvironment = () => {
 
     useFrame((state, delta) => {
         const movement = speed * delta;
-        // Foreground
         if (contentRef1.current) {
             contentRef1.current.position.z += movement;
             if (contentRef1.current.position.z > CHUNK_LENGTH_COASTAL) {
@@ -675,7 +616,6 @@ const CoastalRunEnvironment = () => {
             }
         }
 
-        // Background Parallax (Slower)
         const bgMovement = movement * 0.1;
         if (bgRef1.current) {
             bgRef1.current.position.z += bgMovement;
@@ -690,16 +630,12 @@ const CoastalRunEnvironment = () => {
             }
         }
 
-        // --- Lava/Water Splash Logic ---
-        // Find player object to track Y position
         const playerGroup = state.scene.getObjectByName('PlayerGroup');
         if (playerGroup && playerGroup.children.length > 0) {
             const player = playerGroup.children[0];
             playerY.current = player.position.y;
-
-            // Detect landing: falling (prev > curr) and hitting ground (curr ~ 0)
             if (prevPlayerY.current > 0.05 && playerY.current <= 0.01) {
-                 audio.playLavaSplash(); // Using heavy splash sound as requested
+                 audio.playLavaSplash(); 
             }
             prevPlayerY.current = playerY.current;
         }
@@ -711,17 +647,14 @@ const CoastalRunEnvironment = () => {
             <ambientLight intensity={0.7} color="#ffffff" />
             <directionalLight castShadow position={[50, 50, 20]} intensity={2.0} color="#ffffdd" shadow-mapSize={[1024, 1024]} />
             <directionalLight position={[-50, 20, -20]} intensity={0.5} color="#aaddff" />
-
-            {/* Replaced Sky with Dynamic Cloud Shader */}
             <DynamicSkyClouds />
 
             <group>
-                {/* Parallax Mountains and Islands */}
                 <group>
                     <ParallaxMountains ref={bgRef1} position={[0, 0, 0]} />
                     <ParallaxMountains ref={bgRef2} position={[0, 0, -CHUNK_LENGTH_COASTAL]} />
                 </group>
-                <group position={[0, 0, -100]}> {/* Offset islands further back */}
+                <group position={[0, 0, -100]}>
                     <DistantIslands position={[0, 0, 0]} />
                 </group>
             </group>

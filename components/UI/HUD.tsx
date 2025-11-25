@@ -82,8 +82,8 @@ const SplashScreen: React.FC = () => {
 
     return (
         <div className="absolute inset-0 bg-[#020014] flex flex-col items-center justify-center z-[100] pointer-events-auto animate-in fade-in duration-1000">
-            <div className="text-center">
-                <h1 className="font-cyber text-5xl md:text-7xl font-black tracking-widest flex">
+            <div className="text-center scale-75 md:scale-100">
+                <h1 className="font-cyber text-5xl md:text-7xl font-black tracking-widest flex justify-center">
                     {title.split('').map((char, index) => (
                         <span 
                             key={index}
@@ -98,7 +98,7 @@ const SplashScreen: React.FC = () => {
                     ))}
                 </h1>
                 <h2 
-                    className="font-cyber text-5xl md:text-7xl font-black tracking-[0.3em] text-cyan-400"
+                    className="font-cyber text-4xl md:text-7xl font-black tracking-[0.3em] text-cyan-400 mt-2"
                     style={{
                         textShadow: `0 0 15px #00ffff`,
                         animation: `fadeInUp 0.5s 0.6s both`
@@ -107,7 +107,7 @@ const SplashScreen: React.FC = () => {
                     RUNNER
                 </h2>
             </div>
-            <div className="absolute bottom-10 text-cyan-400/50 text-sm font-mono tracking-widest animate-pulse">
+            <div className="absolute bottom-10 text-cyan-400/50 text-xs md:text-sm font-mono tracking-widest animate-pulse">
                 LOADING ZONES...
             </div>
             {/* Inline style for keyframes to avoid needing a CSS file */}
@@ -131,7 +131,7 @@ const SplashScreen: React.FC = () => {
 
 const PowerUpTimer: React.FC<{ icon: React.ElementType, color: string, expiry: number, totalDuration: number }> = ({ icon: Icon, color, expiry, totalDuration }) => {
     const [progress, setProgress] = useState(1);
-    const radius = 22; // Slightly smaller radius to fit stroke within 64x64 without clipping
+    const radius = 22; 
     const center = 32;
     const circumference = 2 * Math.PI * radius;
 
@@ -157,7 +157,7 @@ const PowerUpTimer: React.FC<{ icon: React.ElementType, color: string, expiry: n
     const strokeDashoffset = circumference * (1 - progress);
 
     return (
-        <div className="relative w-16 h-16 flex items-center justify-center">
+        <div className="relative w-12 h-12 md:w-16 md:h-16 flex items-center justify-center">
             {/* SVG Progress Bar */}
             <svg className="absolute w-full h-full transform -rotate-90" viewBox="0 0 64 64">
                 {/* Background Track */}
@@ -186,20 +186,11 @@ const PowerUpTimer: React.FC<{ icon: React.ElementType, color: string, expiry: n
             
             {/* Centered Icon */}
             <div className="relative z-10 flex items-center justify-center animate-pulse" style={{ color: color, filter: `drop-shadow(0 0 8px ${color})` }}>
-                <Icon size={28} strokeWidth={2.5} />
+                <Icon className="w-5 h-5 md:w-7 md:h-7" strokeWidth={2.5} />
             </div>
         </div>
     );
 };
-
-const ZONES = [
-    { name: 'Coastal Run', icon: Waves, color: 'text-cyan-400' },
-    { name: 'Volcanic Realm', icon: Flame, color: 'text-orange-400' },
-    { name: 'Snowy Wonderland', icon: Snowflake, color: 'text-blue-300' },
-    { name: 'Enchanted Forest', icon: TreePine, color: 'text-green-400' },
-    { name: 'Royal Gambit', icon: Crown, color: 'text-yellow-100' },
-    { name: 'Crystal Caves', icon: Diamond, color: 'text-purple-400' }
-];
 
 const ShopScreen: React.FC = () => {
     const { score, buyItem, closeShop, hasDoubleJump, hasHover, damageShieldDuration, lives, maxLives } = useStore();
@@ -234,24 +225,24 @@ const ShopScreen: React.FC = () => {
                   style={{ backgroundImage: 'linear-gradient(#4f46e5 1px, transparent 1px), linear-gradient(90deg, #4f46e5 1px, transparent 1px)', backgroundSize: '40px 40px' }} 
              />
 
-             <div className="relative flex flex-col items-center min-h-full py-8 px-4 max-w-7xl mx-auto">
+             <div className="relative flex flex-col items-center min-h-full py-4 md:py-8 px-4 max-w-7xl mx-auto">
                  {/* Header */}
-                 <div className="w-full flex justify-between items-center mb-8 border-b border-gray-700 pb-4">
-                     <div>
+                 <div className="w-full flex flex-col md:flex-row justify-between items-center mb-6 md:mb-8 border-b border-gray-700 pb-4">
+                     <div className="mb-4 md:mb-0 text-center md:text-left">
                         <h2 className="text-3xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-purple-500 font-cyber tracking-widest drop-shadow-[0_0_10px_rgba(0,255,255,0.5)]">
-                            ABYSSAL MARKETPLACE
+                            MARKET
                         </h2>
-                        <p className="text-gray-400 font-mono text-sm tracking-wider mt-1">AUTHORIZED PERSONNEL ONLY // SYSTEM.FORGE.V2</p>
+                        <p className="text-gray-400 font-mono text-xs md:text-sm tracking-wider mt-1">AUTHORIZED PERSONNEL ONLY</p>
                      </div>
-                     <div className="flex items-center bg-black/60 px-6 py-3 rounded-xl border border-yellow-500/30">
-                         <Diamond className="w-6 h-6 text-yellow-400 mr-3 animate-pulse" />
-                         <span className="text-2xl font-bold font-mono text-yellow-400">{score.toLocaleString()}</span>
+                     <div className="flex items-center bg-black/60 px-4 md:px-6 py-2 md:py-3 rounded-xl border border-yellow-500/30">
+                         <Diamond className="w-5 h-5 md:w-6 md:h-6 text-yellow-400 mr-2 md:mr-3 animate-pulse" />
+                         <span className="text-xl md:text-2xl font-bold font-mono text-yellow-400">{score.toLocaleString()}</span>
                          <span className="text-xs text-yellow-600 ml-2 font-bold tracking-widest">PEARLS</span>
                      </div>
                  </div>
 
                  {/* Grid */}
-                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 w-full mb-8">
+                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 w-full mb-8">
                      {SHOP_ITEMS.map(item => {
                          const Icon = item.icon;
                          const owned = isOwned(item.id);
@@ -262,35 +253,35 @@ const ShopScreen: React.FC = () => {
                          return (
                              <div 
                                 key={item.id} 
-                                className={`relative bg-gray-900/80 border-2 rounded-xl p-6 flex flex-col transition-all duration-300 group hover:-translate-y-1 hover:bg-gray-800 ${getItemColor(item.type)}`}
+                                className={`relative bg-gray-900/80 border-2 rounded-xl p-4 md:p-6 flex flex-col transition-all duration-300 group ${getItemColor(item.type)}`}
                              >
-                                 <div className="flex items-start justify-between mb-4">
-                                     <div className={`p-4 rounded-lg bg-black/50 ${owned ? 'opacity-50' : ''}`}>
-                                         <Icon className="w-8 h-8" />
+                                 <div className="flex items-start justify-between mb-3 md:mb-4">
+                                     <div className={`p-3 md:p-4 rounded-lg bg-black/50 ${owned ? 'opacity-50' : ''}`}>
+                                         <Icon className="w-6 h-6 md:w-8 md:h-8" />
                                      </div>
-                                     <div className="text-xs font-bold px-2 py-1 rounded bg-black/50 font-mono opacity-70">
+                                     <div className="text-[10px] md:text-xs font-bold px-2 py-1 rounded bg-black/50 font-mono opacity-70">
                                          {item.type}
                                      </div>
                                  </div>
                                  
-                                 <h3 className="text-xl font-bold mb-2 font-cyber tracking-wide">{item.name}</h3>
-                                 <p className="text-gray-400 text-sm mb-6 flex-grow min-h-[40px] leading-relaxed">
+                                 <h3 className="text-lg md:text-xl font-bold mb-1 md:mb-2 font-cyber tracking-wide">{item.name}</h3>
+                                 <p className="text-gray-400 text-xs md:text-sm mb-4 md:mb-6 flex-grow min-h-[30px] md:min-h-[40px] leading-relaxed">
                                     {item.description}
                                  </p>
                                  
                                  {owned ? (
-                                    <button disabled className="w-full py-3 bg-gray-800 text-gray-500 font-bold rounded cursor-not-allowed border border-gray-700 font-mono tracking-widest">
+                                    <button disabled className="w-full py-2 md:py-3 bg-gray-800 text-gray-500 font-bold rounded cursor-not-allowed border border-gray-700 font-mono tracking-widest text-sm md:text-base">
                                         // ACQUIRED
                                     </button>
                                  ) : locked ? (
-                                    <button disabled className="w-full py-3 bg-gray-800 text-gray-500 font-bold rounded cursor-not-allowed border border-gray-700 font-mono tracking-widest">
+                                    <button disabled className="w-full py-2 md:py-3 bg-gray-800 text-gray-500 font-bold rounded cursor-not-allowed border border-gray-700 font-mono tracking-widest text-sm md:text-base">
                                         // FULL INTEGRITY
                                     </button>
                                  ) : (
                                      <button 
                                         onClick={() => buyItem(item.id, item.cost)}
                                         disabled={!canAfford}
-                                        className={`w-full py-3 font-bold rounded font-mono tracking-widest transition-all duration-200 flex justify-between items-center px-6
+                                        className={`w-full py-2 md:py-3 font-bold rounded font-mono tracking-widest transition-all duration-200 flex justify-between items-center px-4 md:px-6 text-sm md:text-base
                                             ${canAfford 
                                                 ? 'bg-gradient-to-r from-blue-600 to-cyan-600 text-white hover:brightness-110 shadow-lg hover:shadow-cyan-500/25' 
                                                 : 'bg-gray-800 text-gray-500 cursor-not-allowed border border-gray-700'
@@ -308,10 +299,10 @@ const ShopScreen: React.FC = () => {
                  {/* Footer Button */}
                  <button 
                     onClick={closeShop}
-                    className="group relative px-12 py-4 bg-transparent border-2 border-white/20 text-white font-bold text-xl rounded-none hover:border-cyan-400 hover:text-cyan-400 transition-all duration-300 font-cyber tracking-[0.2em] overflow-hidden"
+                    className="group relative px-8 py-3 md:px-12 md:py-4 bg-transparent border-2 border-white/20 text-white font-bold text-lg md:text-xl rounded-none hover:border-cyan-400 hover:text-cyan-400 transition-all duration-300 font-cyber tracking-[0.2em] overflow-hidden"
                  >
                      <span className="relative z-10 flex items-center">
-                        RESUME RUN <Play className="ml-3 w-5 h-5 fill-current" />
+                        RESUME <Play className="ml-3 w-4 h-4 md:w-5 md:h-5 fill-current" />
                      </span>
                      <div className="absolute inset-0 bg-cyan-400/10 transform -skew-x-12 translate-x-full group-hover:translate-x-0 transition-transform duration-300" />
                  </button>
@@ -319,51 +310,6 @@ const ShopScreen: React.FC = () => {
         </div>
     );
 };
-
-const ZoneSelectorModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
-    const { startGame } = useStore();
-    return (
-        <div className="absolute inset-0 z-[120] bg-black/90 backdrop-blur-md flex items-center justify-center p-4">
-            <div className="bg-gray-900/90 border border-cyan-500/30 rounded-2xl max-w-5xl w-full p-8 relative overflow-hidden">
-                <button 
-                    onClick={onClose}
-                    className="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors"
-                >
-                    <X size={32} />
-                </button>
-                
-                <h2 className="text-3xl md:text-5xl font-cyber font-black text-center text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-purple-500 mb-8 tracking-widest">
-                    ZONE SELECT
-                </h2>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {ZONES.map((zone, idx) => {
-                        const Icon = zone.icon;
-                        const level = idx + 1;
-                        return (
-                            <button 
-                                key={level}
-                                onClick={() => {
-                                    audio.init();
-                                    startGame(level);
-                                    onClose();
-                                }}
-                                className="group relative bg-black/50 border border-gray-700 hover:border-cyan-500 rounded-xl p-6 transition-all duration-300 hover:bg-gray-800 flex flex-col items-center overflow-hidden"
-                            >
-                                <div className={`absolute inset-0 opacity-0 group-hover:opacity-10 bg-gradient-to-br from-${zone.color.replace('text-', '')} to-transparent transition-opacity`} />
-                                <div className={`p-4 rounded-full bg-black/50 mb-4 ${zone.color} shadow-[0_0_15px_rgba(0,0,0,0.5)] group-hover:scale-110 transition-transform`}>
-                                    <Icon size={40} />
-                                </div>
-                                <h3 className={`text-xl font-bold font-cyber ${zone.color} mb-1`}>{zone.name}</h3>
-                                <p className="text-gray-500 font-mono text-sm">ZONE {level}</p>
-                            </button>
-                        )
-                    })}
-                </div>
-            </div>
-        </div>
-    )
-}
 
 const THEME_COLORS = {
     1: { main: 'text-cyan-400', shadow: 'drop-shadow-[0_0_10px_#00ffff]', speed: 'text-cyan-500' }, // Coastal
@@ -374,10 +320,37 @@ const THEME_COLORS = {
     6: { main: 'text-purple-400', shadow: 'drop-shadow-[0_0_10px_#a855f7]', speed: 'text-purple-500' }, // Crystal Caves
 };
 
+const MainMenu: React.FC = () => {
+    const { startGame } = useStore();
+
+    return (
+        <div className="absolute inset-0 z-[100] pointer-events-auto p-4 md:p-8 flex flex-col items-center justify-center">
+            <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-black pointer-events-none" />
+            
+            <h1 className="text-4xl md:text-6xl font-black font-cyber text-white mb-2 drop-shadow-[0_0_15px_rgba(0,255,255,0.5)]">
+                ZONES RUNNER
+            </h1>
+            
+            <p className="text-gray-400 text-sm md:text-base font-mono mb-12 tracking-wider">
+                SURVIVE THE INFINITE ABYSS
+            </p>
+
+            <button
+                onClick={() => { audio.init(); startGame(1); }}
+                className="group relative px-12 py-4 bg-transparent border-2 border-cyan-500 text-cyan-400 font-bold text-xl md:text-2xl rounded-none hover:bg-cyan-500 hover:text-black transition-all duration-300 font-cyber tracking-[0.2em] overflow-hidden shadow-[0_0_20px_rgba(0,255,255,0.3)]"
+            >
+                <span className="relative z-10 flex items-center">
+                    START RUN <Play className="ml-3 w-5 h-5 fill-current" />
+                </span>
+                <div className="absolute inset-0 bg-cyan-400/20 transform -skew-x-12 translate-x-full group-hover:translate-x-0 transition-transform duration-300" />
+            </button>
+        </div>
+    );
+};
+
 export const HUD: React.FC = () => {
   const { score, lives, maxLives, collectedLetters, status, level, visualLevel, restartGame, startGame, gemsCollected, distance, isInvincible, invincibilityExpiry, invincibilityTotalDuration, isScoreMultiplierActive, scoreMultiplierExpiry, scoreMultiplierTotalDuration, speed, setStatus, openShop, showMenu } = useStore();
   const [displayedScore, setDisplayedScore] = useState(score);
-  const [showZoneSelector, setShowZoneSelector] = useState(false);
   const target = LEVEL_TARGETS[level - 1] || [];
   const letterColors = LEVEL_COLORS[level - 1] || [];
   const theme = THEME_COLORS[visualLevel as keyof typeof THEME_COLORS] || THEME_COLORS[1];
@@ -423,32 +396,14 @@ export const HUD: React.FC = () => {
   }
 
   if (status === GameStatus.MENU) {
-    return (
-        <div className="absolute inset-0 z-[100] pointer-events-auto p-4 md:p-8">
-            {showZoneSelector && <ZoneSelectorModal onClose={() => setShowZoneSelector(false)} />}
-            <div className="absolute inset-x-0 bottom-20 flex flex-col md:flex-row justify-center items-center space-y-4 md:space-y-0 md:space-x-4">
-                 <button
-                    onClick={() => setShowZoneSelector(true)}
-                    className="flex items-center px-8 py-3 bg-gray-800/80 border border-gray-600 text-gray-300 font-bold text-lg rounded-xl hover:bg-gray-700 hover:text-white hover:border-cyan-500 transition-all font-mono"
-                >
-                    <Map className="mr-2 w-5 h-5" /> SELECT ZONE
-                </button>
-                <button
-                    onClick={() => { audio.init(); startGame(1); }}
-                    className="flex items-center px-10 py-4 bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-bold text-xl rounded-xl hover:scale-105 transition-all shadow-[0_0_20px_rgba(0,255,255,0.4)] animate-in fade-in slide-in-from-bottom-10 duration-500"
-                >
-                    START RUN <Play className="ml-2 w-5 h-5 fill-white" />
-                </button>
-            </div>
-        </div>
-    );
+    return <MainMenu />;
   }
 
   if (status === GameStatus.GAME_OVER) {
       return (
           <div className="absolute inset-0 bg-black/90 z-[100] text-white pointer-events-auto backdrop-blur-sm overflow-y-auto">
               <div className="flex flex-col items-center justify-center min-h-full py-8 px-4">
-                <h1 className="text-4xl md:text-6xl font-black text-white mb-6 drop-shadow-[0_0_10px_rgba(255,0,0,0.8)] font-cyber text-center">PRESSURE CRITICAL</h1>
+                <h1 className="text-4xl md:text-6xl font-black text-white mb-6 drop-shadow-[0_0_10px_rgba(255,0,0,0.8)] font-cyber text-center">CRITICAL FAILURE</h1>
                 
                 <div className="grid grid-cols-1 gap-3 md:gap-4 text-center mb-8 w-full max-w-md">
                     <div className="bg-gray-900/80 p-3 md:p-4 rounded-lg border border-gray-700 flex items-center justify-between">
@@ -456,15 +411,15 @@ export const HUD: React.FC = () => {
                         <div className="text-xl md:text-2xl font-bold font-mono">{level} / 6</div>
                     </div>
                     <div className="bg-gray-900/80 p-3 md:p-4 rounded-lg border border-gray-700 flex items-center justify-between">
-                        <div className="flex items-center text-cyan-400 text-sm md:text-base"><Diamond className="mr-2 w-4 h-4 md:w-5 md:h-5"/> GEMS COLLECTED</div>
+                        <div className="flex items-center text-cyan-400 text-sm md:text-base"><Diamond className="mr-2 w-4 h-4 md:w-5 md:h-5"/> GEMS</div>
                         <div className="text-xl md:text-2xl font-bold font-mono">{gemsCollected}</div>
                     </div>
                     <div className="bg-gray-900/80 p-3 md:p-4 rounded-lg border border-gray-700 flex items-center justify-between">
-                        <div className="flex items-center text-purple-400 text-sm md:text-base"><MapPin className="mr-2 w-4 h-4 md:w-5 md:h-5"/> DEPTH</div>
+                        <div className="flex items-center text-purple-400 text-sm md:text-base"><MapPin className="mr-2 w-4 h-4 md:w-5 md:h-5"/> DISTANCE</div>
                         <div className="text-xl md:text-2xl font-bold font-mono">{Math.floor(distance)} m</div>
                     </div>
                      <div className="bg-gray-800/50 p-3 md:p-4 rounded-lg flex items-center justify-between mt-2">
-                        <div className="flex items-center text-white text-sm md:text-base">TOTAL SCORE</div>
+                        <div className="flex items-center text-white text-sm md:text-base">SCORE</div>
                         <div className="text-2xl md:text-3xl font-bold font-cyber text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-orange-500">{score.toLocaleString()}</div>
                     </div>
                 </div>
@@ -474,14 +429,14 @@ export const HUD: React.FC = () => {
                     onClick={() => { audio.init(); restartGame(); }}
                     className="w-full px-8 py-3 md:py-4 bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-bold text-lg md:text-xl rounded hover:scale-105 transition-all shadow-[0_0_20px_rgba(0,255,255,0.4)]"
                     >
-                        RUN AGAIN
+                        RETRY
                     </button>
                     
                     <button 
                     onClick={() => { audio.init(); showMenu(); }}
                     className="w-full px-8 py-3 bg-transparent border border-gray-600 text-gray-400 font-bold text-lg rounded hover:bg-gray-800 hover:text-white hover:border-gray-400 transition-all flex items-center justify-center"
                     >
-                        <Home className="w-4 h-4 mr-2" /> MAIN MENU
+                        <Home className="w-4 h-4 mr-2" /> MENU
                     </button>
                 </div>
               </div>
@@ -495,7 +450,7 @@ export const HUD: React.FC = () => {
             <div className="flex flex-col items-center justify-center min-h-full py-8 px-4">
                 <Trophy className="w-16 h-16 md:w-24 md:h-24 text-yellow-400 mb-4 animate-bounce drop-shadow-[0_0_15px_rgba(255,215,0,0.6)]" />
                 <h1 className="text-3xl md:text-7xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 via-orange-500 to-pink-500 mb-2 drop-shadow-[0_0_20px_rgba(255,165,0,0.6)] font-cyber text-center leading-tight">
-                    SURFACE REACHED
+                    COMPLETE
                 </h1>
                 <p className="text-cyan-300 text-sm md:text-2xl font-mono mb-8 tracking-widest text-center">
                     YOU HAVE ESCAPED THE ABYSS
@@ -512,7 +467,7 @@ export const HUD: React.FC = () => {
                             <div className="text-xl md:text-2xl font-bold text-cyan-400">{gemsCollected}</div>
                         </div>
                         <div className="bg-black/60 p-4 rounded-lg border border-white/10">
-                             <div className="text-xs text-gray-400">DEPTH</div>
+                             <div className="text-xs text-gray-400">DISTANCE</div>
                             <div className="text-xl md:text-2xl font-bold text-purple-400">{Math.floor(distance)} m</div>
                         </div>
                      </div>
@@ -529,7 +484,7 @@ export const HUD: React.FC = () => {
                     onClick={() => { audio.init(); showMenu(); }}
                     className="w-full px-8 py-3 bg-transparent border border-gray-600 text-gray-400 font-bold text-lg rounded hover:bg-gray-800 hover:text-white hover:border-gray-400 transition-all flex items-center justify-center"
                     >
-                        <Home className="w-4 h-4 mr-2" /> MAIN MENU
+                        <Home className="w-4 h-4 mr-2" /> MENU
                     </button>
                 </div>
             </div>
@@ -546,7 +501,7 @@ export const HUD: React.FC = () => {
     <div className={containerClass}>
         {/* Top Bar */}
         <div className="flex justify-between items-start w-full">
-            <div className={`text-3xl md:text-5xl font-bold ${theme.main} ${theme.shadow} font-cyber`}>
+            <div className={`text-2xl md:text-5xl font-bold ${theme.main} ${theme.shadow} font-cyber`}>
                 {displayedScore.toLocaleString()}
             </div>
             
@@ -562,7 +517,7 @@ export const HUD: React.FC = () => {
                     {[...Array(maxLives)].map((_, i) => (
                         <Heart 
                             key={i} 
-                            className={`w-6 h-6 md:w-8 md:h-8 ${i < lives ? 'text-red-500 fill-red-500' : 'text-gray-800 fill-gray-800'} drop-shadow-[0_0_5px_#ff0000]`} 
+                            className={`w-5 h-5 md:w-8 md:h-8 ${i < lives ? 'text-red-500 fill-red-500' : 'text-gray-800 fill-gray-800'} drop-shadow-[0_0_5px_#ff0000]`} 
                         />
                     ))}
                 </div>
@@ -570,12 +525,12 @@ export const HUD: React.FC = () => {
         </div>
         
         {/* Level Indicator - Moved to Top Center aligned with Score/Hearts */}
-        <div className="absolute top-5 left-1/2 transform -translate-x-1/2 text-sm md:text-lg text-purple-300 font-bold tracking-wider font-mono bg-black/50 px-3 py-1 rounded-full border border-purple-500/30 backdrop-blur-sm z-50">
-            ZONE {level} <span className="text-gray-500 text-xs md:text-sm">/ 6</span>
+        <div className="absolute top-3 md:top-5 left-1/2 transform -translate-x-1/2 text-xs md:text-lg text-purple-300 font-bold tracking-wider font-mono bg-black/50 px-3 py-1 rounded-full border border-purple-500/30 backdrop-blur-sm z-50">
+            ZONE {level} <span className="text-gray-500 text-[10px] md:text-sm">/ 6</span>
         </div>
 
         {/* Circular Active Powerup Indicators - Bottom Left */}
-         <div className="absolute bottom-16 left-6 flex flex-col-reverse space-y-reverse space-y-4">
+         <div className="absolute bottom-16 left-4 md:left-6 flex flex-col-reverse space-y-reverse space-y-4">
             {isInvincible && (
                 <PowerUpTimer 
                     icon={Shield} 
@@ -595,10 +550,10 @@ export const HUD: React.FC = () => {
         </div>
 
         {/* Letter Collection Status */}
-        <div className="absolute top-16 md:top-24 left-1/2 transform -translate-x-1/2 w-full px-4 flex flex-wrap justify-center gap-1 md:gap-2">
+        <div className="absolute top-12 md:top-24 left-1/2 transform -translate-x-1/2 w-full px-4 flex flex-wrap justify-center gap-1 md:gap-2">
             {target.map((char, idx) => {
                 const isCollected = collectedLetters.includes(idx);
-                const color = letterColors[idx];
+                const color = letterColors[idx % letterColors.length];
 
                 return (
                     <div 
@@ -610,7 +565,7 @@ export const HUD: React.FC = () => {
                             boxShadow: isCollected ? `0 0 20px ${color}` : 'none',
                             backgroundColor: isCollected ? color : 'rgba(0, 0, 0, 0.9)'
                         }}
-                        className={`w-8 h-10 md:w-10 md:h-12 flex items-center justify-center border-2 font-black text-lg md:text-xl font-cyber rounded-lg transform transition-all duration-300`}
+                        className={`w-6 h-8 md:w-10 md:h-12 flex items-center justify-center border-2 font-black text-base md:text-xl font-cyber rounded md:rounded-lg transform transition-all duration-300`}
                     >
                         {char}
                     </div>
@@ -622,7 +577,7 @@ export const HUD: React.FC = () => {
         <div className="w-full flex justify-end items-end">
              <div className={`flex items-center space-x-2 ${theme.speed} opacity-70`}>
                  <Zap className="w-4 h-4 md:w-6 md:h-6 animate-pulse" />
-                 <span className="font-mono text-base md:text-xl">SPEED {Math.round((speed / RUN_SPEED_BASE) * 100)}%</span>
+                 <span className="font-mono text-sm md:text-xl">SPEED {Math.round((speed / RUN_SPEED_BASE) * 100)}%</span>
              </div>
         </div>
     </div>

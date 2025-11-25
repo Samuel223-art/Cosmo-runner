@@ -1,3 +1,4 @@
+
 /**
  * @license
  * SPDX-License-Identifier: Apache-2.0
@@ -16,8 +17,10 @@ import { useStore } from './store';
 
 // Dynamic Camera Controller
 const CameraController = () => {
-  const { camera } = useThree();
+  const { camera, scene } = useThree();
   const shakeIntensity = useRef(0);
+  const targetPos = useRef(new THREE.Vector3(0, 3.85, 8.0));
+  const currentLookAt = useRef(new THREE.Vector3(0, -1, -30));
 
   useEffect(() => {
     const onPlayerHit = () => {
@@ -29,29 +32,55 @@ const CameraController = () => {
   }, []);
   
   useFrame((state, delta) => {
-    // New fixed camera position, 70% of the original base values
-    const targetY = 3.85; // 5.5 * 0.7
-    const targetZ = 5.6;  // 8.0 * 0.7
+    const playerGroup = scene.getObjectByName('PlayerGroup');
+    // The playerGroup itself is static at 0,0,0. The actual player mesh is the first child.
+    const playerMesh = playerGroup?.children[0];
 
-    const targetPos = new THREE.Vector3(0, targetY, targetZ);
-    
-    // Smoothly interpolate camera position
-    camera.position.lerp(targetPos, delta * 2.0);
-    
-    // Apply Shake
-    if (shakeIntensity.current > 0) {
-        const shake = shakeIntensity.current;
-        camera.position.x += (Math.random() - 0.5) * shake;
-        camera.position.y += (Math.random() - 0.5) * shake;
-        camera.position.z += (Math.random() - 0.5) * shake;
+    if (playerMesh) {
+         // Follow player X with a slight lag for smoothness
+         const pX = playerMesh.position.x;
+         const pY = playerMesh.position.y; // Access inner body Y for jump tracking
 
-        // Decay shake
-        shakeIntensity.current = THREE.MathUtils.lerp(shakeIntensity.current, 0, delta * 4.0);
-        if (shakeIntensity.current < 0.01) shakeIntensity.current = 0;
+         // Base target position
+         // We want the camera to follow the player's lane exactly for a "locked in" feel
+         const baseX = pX; 
+         const baseY = 3.85 + (pY * 0.5); // Follow jump height partially
+         const baseZ = 8.0; // Increased distance
+
+         targetPos.current.set(baseX, baseY, baseZ);
+         
+         // Look target also shifts to maintain perspective
+         const lookAtX = pX * 0.6; // Look slightly ahead/towards center relative to cam
+         const lookAtY = (pY * 0.5) - 1;
+         
+         // Smoothly interpolate camera position
+         camera.position.lerp(targetPos.current, delta * 5.0);
+         
+         // Apply Shake
+         if (shakeIntensity.current > 0) {
+             const shake = shakeIntensity.current;
+             camera.position.x += (Math.random() - 0.5) * shake;
+             camera.position.y += (Math.random() - 0.5) * shake;
+             camera.position.z += (Math.random() - 0.5) * shake;
+     
+             // Decay shake
+             shakeIntensity.current = THREE.MathUtils.lerp(shakeIntensity.current, 0, delta * 4.0);
+             if (shakeIntensity.current < 0.01) shakeIntensity.current = 0;
+         }
+     
+         // Dynamic LookAt
+         const targetLookAt = new THREE.Vector3(lookAtX, lookAtY, -30);
+         
+         // IMPORTANT: Lerp the persistent ref vector, not a new vector every frame
+         currentLookAt.current.lerp(targetLookAt, delta * 5.0);
+         camera.lookAt(currentLookAt.current); 
+
+    } else {
+        // Fallback if player not found yet
+        const defaultTarget = new THREE.Vector3(0, 3.85, 8.0);
+        camera.position.lerp(defaultTarget, delta * 2.0);
+        camera.lookAt(0, -1, -30);
     }
-
-    // Look further down the track from the new lower angle
-    camera.lookAt(0, -1, -30); 
   });
   
   return null;
@@ -82,7 +111,7 @@ function App() {
         dpr={[1, 1.5]} 
         gl={{ antialias: false, stencil: false, depth: true, powerPreference: "high-performance" }}
         // Initial camera, matches the new fixed controller base
-        camera={{ position: [0, 3.85, 5.6], fov: 60 }}
+        camera={{ position: [0, 3.85, 8.0], fov: 60 }}
       >
         <CameraController />
         <Suspense fallback={null}>

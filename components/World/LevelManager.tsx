@@ -16,7 +16,7 @@ import { audio } from '../System/Audio';
 
 // Helper to create a multi-colored beach ball geometry
 const createBeachBallGeo = (): THREE.BufferGeometry => {
-    const geo = new THREE.SphereGeometry(0.8, 32, 16);
+    const geo = new THREE.SphereGeometry(0.8, 16, 12); // Reduced segments
     const colorsAttr: number[] = [];
     const palette = [
         new THREE.Color('#e63946'), // Red
@@ -46,50 +46,51 @@ const BEACH_BALL_GEO = createBeachBallGeo();
 // --- Level Themed Geometries ---
 const OBSTACLE_GEOS = {
     1: BEACH_BALL_GEO,     // Beach Ball (Coastal)
-    2: new THREE.IcosahedronGeometry(0.8, 1),      // Sea Urchin (Volcanic)
+    2: new THREE.IcosahedronGeometry(0.8, 0),      // Sea Urchin (Volcanic) - Reduced detail
     3: new THREE.TetrahedronGeometry(1.2, 0),      // Ice Crystal (Snow)
-    4: new THREE.TorusKnotGeometry(0.6, 0.2, 64, 8), // Thorn Vine (Forest)
-    5: new THREE.CylinderGeometry(0.2, 0.6, 1.5, 8), // Pawn (Chess)
-    6: new THREE.CylinderGeometry(0.0, 0.5, 2.5, 5), // Crystal Spike
+    4: new THREE.TorusKnotGeometry(0.6, 0.2, 32, 6), // Thorn Vine (Forest) - Reduced segments
+    5: new THREE.CylinderGeometry(0.2, 0.6, 1.5, 6), // Pawn (Chess) - Reduced segments
+    6: new THREE.CylinderGeometry(0.0, 0.5, 2.5, 4), // Crystal Spike - Reduced segments
 };
 const OBSTACLE_GLOW_GEOS = {
-    1: new THREE.SphereGeometry(0.82, 16, 8),
-    2: new THREE.IcosahedronGeometry(0.82, 1),
+    1: new THREE.SphereGeometry(0.82, 12, 6),
+    2: new THREE.IcosahedronGeometry(0.82, 0),
     3: new THREE.TetrahedronGeometry(1.22, 0),
-    4: new THREE.TorusKnotGeometry(0.62, 0.2, 64, 8),
-    5: new THREE.CylinderGeometry(0.25, 0.65, 1.55, 8),
-    6: new THREE.CylinderGeometry(0.05, 0.55, 2.55, 5),
+    4: new THREE.TorusKnotGeometry(0.62, 0.2, 32, 6),
+    5: new THREE.CylinderGeometry(0.25, 0.65, 1.55, 6),
+    6: new THREE.CylinderGeometry(0.05, 0.55, 2.55, 4),
 };
 const GEM_GEOS = {
     1: new THREE.OctahedronGeometry(0.35, 0),      // Coastal Gem
-    2: new THREE.SphereGeometry(0.3, 16, 16),        // Volcanic Gem
+    2: new THREE.SphereGeometry(0.3, 8, 8),        // Volcanic Gem - Reduced segments
     3: new THREE.IcosahedronGeometry(0.4, 0),    // Snow Gem
     4: new THREE.IcosahedronGeometry(0.4, 0),       // Forest Crystal
     5: new THREE.OctahedronGeometry(0.4, 0),        // Chess Gem
     6: new THREE.TetrahedronGeometry(0.4, 0),       // Crystal Gem
 };
-const SNOWBALL_GEO = new THREE.SphereGeometry(LANE_WIDTH * 0.8, 20, 16);
-const SNOWBALL_GLOW_GEO = new THREE.SphereGeometry(LANE_WIDTH * 0.8 + 0.02, 20, 16);
+const SNOWBALL_GEO = new THREE.SphereGeometry(LANE_WIDTH * 0.8, 12, 10); // Reduced segments
+const SNOWBALL_GLOW_GEO = new THREE.SphereGeometry(LANE_WIDTH * 0.8 + 0.02, 12, 10); // Reduced segments
+const BARRIER_HIGH_GEO = new THREE.BoxGeometry(LANE_WIDTH, 0.5, 0.2);
 
 // Falling Tree Geometries
-const LOG_GEO = new THREE.CylinderGeometry(0.25, 0.35, 5.0, 8);
-const LEAVES_GEO = new THREE.ConeGeometry(1.0, 2.0, 6);
+const LOG_GEO = new THREE.CylinderGeometry(0.25, 0.35, 5.0, 6);
+const LEAVES_GEO = new THREE.ConeGeometry(1.0, 2.0, 5);
 
 // --- Shared Geometries ---
-const SQUID_BODY_GEO = new THREE.ConeGeometry(0.5, 1.2, 8);
-const SQUID_EYE_GEO = new THREE.SphereGeometry(0.15);
-const INK_BLAST_CORE_GEO = new THREE.SphereGeometry(0.3, 8, 8);
+const SQUID_BODY_GEO = new THREE.ConeGeometry(0.5, 1.2, 6);
+const SQUID_EYE_GEO = new THREE.SphereGeometry(0.15, 6, 6);
+const INK_BLAST_CORE_GEO = new THREE.SphereGeometry(0.3, 6, 6);
 const POWERUP_SHIELD_GEO = new THREE.OctahedronGeometry(0.4, 0);
-const POWERUP_MULTIPLIER_GEO = new THREE.TorusKnotGeometry(0.3, 0.05, 64, 8, 2, 3);
+const POWERUP_MULTIPLIER_GEO = new THREE.TorusKnotGeometry(0.3, 0.05, 32, 6, 2, 3);
 const SHADOW_LETTER_GEO = new THREE.PlaneGeometry(2, 0.6);
-const SHADOW_GEM_GEO = new THREE.CircleGeometry(0.6, 32);
-const SHADOW_SQUID_GEO = new THREE.CircleGeometry(0.8, 32);
-const SHADOW_INK_BLAST_GEO = new THREE.CircleGeometry(0.5, 32);
+const SHADOW_GEM_GEO = new THREE.CircleGeometry(0.6, 12);
+const SHADOW_SQUID_GEO = new THREE.CircleGeometry(0.8, 12);
+const SHADOW_INK_BLAST_GEO = new THREE.CircleGeometry(0.5, 12);
 const SHADOW_DEFAULT_GEO = new THREE.CircleGeometry(0.8, 6);
 const SHADOW_TREE_GEO = new THREE.PlaneGeometry(5.0, 1.0);
-const WHIRLPOOL_GEO = new THREE.PlaneGeometry(1, 1, 64, 64);
+const WHIRLPOOL_GEO = new THREE.PlaneGeometry(1, 1, 32, 32);
 
-const PARTICLE_COUNT = 600;
+const PARTICLE_COUNT = 150; // Reduced from 600 for performance
 const BASE_LETTER_INTERVAL = 150; 
 const getLetterInterval = (level: number) => BASE_LETTER_INTERVAL * Math.pow(1.5, Math.max(0, level - 1));
 const INK_BLAST_SPEED = 30;
@@ -109,7 +110,7 @@ const ParticleSystem: React.FC = () => {
         const handleExplosion = (e: CustomEvent) => {
             const { position, color, burstAmount } = e.detail;
             let spawned = 0;
-            const finalBurstAmount = burstAmount || 40; 
+            const finalBurstAmount = burstAmount ? Math.min(burstAmount, 30) : 20; // Cap burst amount
 
             for(let i = 0; i < PARTICLE_COUNT; i++) {
                 const p = particles[i];
@@ -169,7 +170,7 @@ const getRandomLane = (laneCount: number) => {
 };
 
 export const LevelManager: React.FC = () => {
-  const { status, speed, collectGem, collectLetter, collectPowerUp, collectedLetters, laneCount, setDistance, openShop, level, visualLevel, isInvincible } = useStore();
+  const { status, speed, collectGem, collectLetter, collectPowerUp, collectedLetters, laneCount, setDistance, openShop, level, visualLevel, isInvincible, isSliding } = useStore();
   const objectsRef = useRef<GameObject[]>([]);
   const [renderTrigger, setRenderTrigger] = useState(0);
   const prevStatus = useRef(status);
@@ -235,7 +236,7 @@ export const LevelManager: React.FC = () => {
                  newSpawns.push({ id: uuidv4(), type: ObjectType.MISSILE, position: [obj.position[0], 1.0, obj.position[2] + 2], active: true, color: '#ff0000' });
                  hasChanges = true;
                  // Burst color updated to orange/red
-                 window.dispatchEvent(new CustomEvent('particle-burst', { detail: { position: obj.position, color: '#ff4400' } }));
+                 window.dispatchEvent(new CustomEvent('particle-burst', { detail: { position: obj.position, color: '#ff4400', burstAmount: 20 } }));
              }
         }
 
@@ -244,7 +245,6 @@ export const LevelManager: React.FC = () => {
             // Trigger fall when close enough
             if (!obj.hasTriggered && (obj.position[2] - playerPos.z) > -50 && (obj.position[2] - playerPos.z) < 45) {
                 obj.hasTriggered = true;
-                // Play a crackling wood sound? (Reusing snow step or shatter for now as placeholder, or just none)
             }
 
             if (obj.hasTriggered) {
@@ -288,25 +288,37 @@ export const LevelManager: React.FC = () => {
                             }
                         }
                     }
+                } else if (obj.type === ObjectType.BARRIER_HIGH) {
+                     // BARRIER COLLISION
+                     // Player must be sliding to pass under
+                     if (Math.abs(obj.position[0] - playerPos.x) < collisionThreshold) {
+                         // Barrier is high (approx y=1.8), requires sliding
+                         // Sliding reduces player height to < 1.0
+                         // If not sliding, player top (~1.8) hits barrier bottom (~1.5)
+                         if (!isSliding) {
+                             isHit = true;
+                         }
+                     }
                 } else {
                     // STANDARD COLLISION
                     if (Math.abs(obj.position[0] - playerPos.x) < collisionThreshold) {
                          const isDamageSource = obj.type === ObjectType.OBSTACLE || obj.type === ObjectType.ALIEN || obj.type === ObjectType.MISSILE;
                          if (isDamageSource) {
-                             const playerBottom = playerPos.y; const playerTop = playerPos.y + 1.8;
+                             const playerBottom = playerPos.y; const playerTop = playerPos.y + (isSliding ? 0.9 : 1.8);
                              let objBottom = obj.position[1] - 0.5, objTop = obj.position[1] + 0.5;
                              if (obj.type === ObjectType.OBSTACLE) { objBottom = 0; objTop = obj.isSnowball ? LANE_WIDTH * 1.6 : 1.6; }
                              if ((playerBottom < objTop) && (playerTop > objBottom)) { 
                                  isHit = true;
                              }
                          } else {
+                             // Collectibles
                              if (Math.abs(obj.position[1] - playerPos.y) < 2.5) {
                                 let collected = false;
                                 if (obj.type === ObjectType.GEM) { collectGem(obj.points || 50); audio.playGemCollect(); collected = true; }
                                 if (obj.type === ObjectType.LETTER && obj.targetIndex !== undefined) { collectLetter(obj.targetIndex); audio.playLetterCollect(); collected = true; }
                                 if (obj.powerUpType) { collectPowerUp(obj.powerUpType); audio.playLetterCollect(); collected = true; }
                                 if (collected) {
-                                    window.dispatchEvent(new CustomEvent('particle-burst', { detail: { position: obj.position, color: obj.color || '#ffffff' } }));
+                                    window.dispatchEvent(new CustomEvent('particle-burst', { detail: { position: obj.position, color: obj.color || '#ffffff', burstAmount: 15 } }));
                                     obj.active = false; hasChanges = true;
                                 }
                              }
@@ -315,13 +327,13 @@ export const LevelManager: React.FC = () => {
                 }
 
                 if (isHit) {
-                    if (isInvincible && (obj.type === ObjectType.OBSTACLE || obj.type === ObjectType.FALLING_TREE)) {
+                    if (isInvincible && (obj.type === ObjectType.OBSTACLE || obj.type === ObjectType.FALLING_TREE || obj.type === ObjectType.BARRIER_HIGH)) {
                         audio.playShatter();
-                        window.dispatchEvent(new CustomEvent('particle-burst', { detail: { position: obj.position, color: '#a5f3fc', burstAmount: 100 }}));
+                        window.dispatchEvent(new CustomEvent('particle-burst', { detail: { position: obj.position, color: '#a5f3fc', burstAmount: 30 }}));
                         obj.active = false; hasChanges = true;
                     } else {
                         window.dispatchEvent(new Event('player-hit')); obj.active = false; hasChanges = true;
-                        if (obj.type === ObjectType.MISSILE) window.dispatchEvent(new CustomEvent('particle-burst', { detail: { position: obj.position, color: '#ff0000', burstAmount: 60 } }));
+                        if (obj.type === ObjectType.MISSILE) window.dispatchEvent(new CustomEvent('particle-burst', { detail: { position: obj.position, color: '#ff0000', burstAmount: 30 } }));
                     }
                 }
             }
@@ -362,19 +374,15 @@ export const LevelManager: React.FC = () => {
                 const spawnSquid = visualLevel === 2 && Math.random() < 0.2;
                 // Zone 4 Falling Tree Logic
                 const spawnFallingTree = visualLevel === 4 && Math.random() < 0.25;
+                // Zone 5 & 6 Barrier Logic (Slide)
+                const spawnBarrier = (visualLevel === 5 || visualLevel === 6) && Math.random() < 0.25;
 
                 if (spawnSquid) {
                     keptObjects.push({ id: uuidv4(), type: ObjectType.ALIEN, position: [spawnLane * LANE_WIDTH, 2.5, spawnZ], active: true, color: '#55ccaa', hasFired: false });
                 } else if (spawnFallingTree) {
                     // Spawn a falling tree on the side lanes only
-                    const side = Math.random() > 0.5 ? -1 : 1; // -1 Left, 1 Right
-                    // If side is -1 (Left), we want it to fall RIGHT (Direction 1)
-                    // If side is 1 (Right), we want it to fall LEFT (Direction -1)
+                    const side = Math.random() > 0.5 ? -1 : 1; 
                     const fallDir = -side;
-                    
-                    // Base position: Just outside the outer lanes
-                    // Lane -1 is at -2.2. Lane 1 is at 2.2.
-                    // We want the base to be around +/- 4.5 so when it falls (length ~5), it covers the lane.
                     const spawnX = side * (laneCount * LANE_WIDTH * 0.5 + 1.2); 
                     
                     keptObjects.push({ 
@@ -386,6 +394,15 @@ export const LevelManager: React.FC = () => {
                         fallDirection: fallDir,
                         fallProgress: 0,
                         hasTriggered: false
+                    });
+                } else if (spawnBarrier) {
+                    // High barrier that spans the lane, requires sliding
+                    keptObjects.push({
+                        id: uuidv4(),
+                        type: ObjectType.BARRIER_HIGH,
+                        position: [spawnLane * LANE_WIDTH, 1.8, spawnZ], // High position
+                        active: true,
+                        color: visualLevel === 5 ? '#ff4400' : '#ff0055' // High contrast neon
                     });
                 } else {
                      if (visualLevel === 3 && Math.random() < 0.25) { // 25% chance for a big snowball
@@ -446,10 +463,6 @@ const GameEntity: React.FC<{ data: GameObject, visualLevel: number }> = React.me
             // data.fallProgress is updated in LevelManager loop
             const progress = data.fallProgress || 0;
             const dir = data.fallDirection || 1;
-            // Rotate from 0 (up) to 90 degrees (flat). Direction determines sign.
-            // If falling Right (1), we rotate -90 deg on Z? No, Z axis comes out of screen.
-            // Right is +X. Up is +Y.
-            // Rotating around Z: Positive is Counter-Clockwise (Left). Negative is Clockwise (Right).
             const targetAngle = -dir * (Math.PI / 2);
             const currentAngle = targetAngle * progress;
             treePivotRef.current.rotation.z = currentAngle;
@@ -460,7 +473,7 @@ const GameEntity: React.FC<{ data: GameObject, visualLevel: number }> = React.me
             if (data.type === ObjectType.ALIEN) {
                  visualRef.current.position.y = baseHeight + Math.sin(state.clock.elapsedTime * 3) * 0.3;
                  visualRef.current.rotation.y += delta * 0.5;
-            } else if (data.type !== ObjectType.OBSTACLE && data.type !== ObjectType.SHOP_PORTAL && data.type !== ObjectType.FALLING_TREE) {
+            } else if (data.type !== ObjectType.OBSTACLE && data.type !== ObjectType.SHOP_PORTAL && data.type !== ObjectType.FALLING_TREE && data.type !== ObjectType.BARRIER_HIGH) {
                 visualRef.current.rotation.y += delta * 2;
                 const bobOffset = Math.sin(state.clock.elapsedTime * 4 + data.position[0]) * 0.1;
                 visualRef.current.position.y = baseHeight + bobOffset;
@@ -478,13 +491,22 @@ const GameEntity: React.FC<{ data: GameObject, visualLevel: number }> = React.me
         if (data.type === ObjectType.ALIEN) return SHADOW_SQUID_GEO;
         if (data.type === ObjectType.MISSILE) return SHADOW_INK_BLAST_GEO;
         if (data.type === ObjectType.FALLING_TREE) return SHADOW_TREE_GEO;
-        if (data.isSnowball) return new THREE.CircleGeometry(LANE_WIDTH * 0.8, 32);
+        if (data.type === ObjectType.BARRIER_HIGH) return null; // No shadow for high barrier needed or maybe rectangle
+        if (data.isSnowball) return new THREE.CircleGeometry(LANE_WIDTH * 0.8, 12);
         return SHADOW_DEFAULT_GEO; 
     }, [data.type, data.powerUpType, data.isSnowball]);
     
     const colors = useMemo(() => ({
-        obstacle: { 1: '#ffffff', 2: '#331122', 3: '#60a5fa', 4: '#582f0e', 5: '#222222', 6: '#d8b4fe' }[visualLevel],
-        obstacleGlow: { 1: '#00ffff', 2: '#ff4499', 3: '#93c5fd', 4: '#70e000', 5: '#ffffff', 6: '#a855f7' }[visualLevel],
+        obstacle: { 
+            1: '#ffffff', 2: '#331122', 3: '#60a5fa', 4: '#582f0e', 
+            5: '#00ffff', // Zone 5 Neon Cyan to stand out against Black/White
+            6: '#d8b4fe' 
+        }[visualLevel],
+        obstacleGlow: { 
+            1: '#00ffff', 2: '#ff4499', 3: '#93c5fd', 4: '#70e000', 
+            5: '#ff00ff', // Zone 5 Neon Magenta Glow
+            6: '#a855f7' 
+        }[visualLevel],
         gem: { 1: '#ff88ff', 2: '#ffffff', 3: '#ffffff', 4: '#ccff33', 5: '#ffd700', 6: '#22d3ee' }[visualLevel],
         gemEmissive: { 1: '#ff00ff', 2: '#dddddd', 3: '#a5f3fc', 4: '#70e000', 5: '#ffffff', 6: '#22d3ee' }[visualLevel],
     }), [visualLevel]);
@@ -498,17 +520,32 @@ const GameEntity: React.FC<{ data: GameObject, visualLevel: number }> = React.me
                 {data.type === ObjectType.ALIEN && (<group><mesh castShadow geometry={SQUID_BODY_GEO} position={[0, -0.2, 0]} rotation={[Math.PI, 0, 0]}><meshStandardMaterial color={data.color} emissive={data.color} emissiveIntensity={0.5} roughness={0.5} metalness={0.8} /></mesh><mesh position={[0.3, 0.3, 0.3]} geometry={SQUID_EYE_GEO}><meshBasicMaterial color="#ffff00" /></mesh><mesh position={[-0.3, 0.3, 0.3]} geometry={SQUID_EYE_GEO}><meshBasicMaterial color="#ffff00" /></mesh></group>)}
                 {data.type === ObjectType.MISSILE && (<mesh geometry={INK_BLAST_CORE_GEO}><meshStandardMaterial color={data.color} emissive={data.color} emissiveIntensity={5} toneMapped={false} /></mesh>)}
                 {data.type === ObjectType.GEM && (<mesh castShadow geometry={GEM_GEOS[visualLevel as keyof typeof GEM_GEOS]} rotation={visualLevel === 2 ? [Math.PI/2,0,0] : [0,0,0]}><meshStandardMaterial color={colors.gem} roughness={0.1} metalness={0.2} emissive={colors.gemEmissive} emissiveIntensity={0.2} /></mesh>)}
-                {data.type === ObjectType.LETTER && (<group scale={[1.5, 1.5, 1.5]}><Center><Text3D font={FONT_URL} size={0.8} height={0.5} bevelEnabled bevelThickness={0.02} bevelSize={0.02} bevelSegments={5}>{data.value}<meshStandardMaterial color={data.color} emissive={data.color} emissiveIntensity={1.5} /></Text3D></Center></group>)}
+                {data.type === ObjectType.LETTER && (<group scale={[1.5, 1.5, 1.5]}><Center><Text3D font={FONT_URL} size={0.8} height={0.5} bevelEnabled bevelThickness={0.02} bevelSize={0.02} bevelSegments={3}>{data.value}<meshStandardMaterial color={data.color} emissive={data.color} emissiveIntensity={1.5} /></Text3D></Center></group>)}
                 {data.type === ObjectType.FALLING_TREE && (
                     <group ref={treePivotRef} position={[0, 0, 0]}>
-                         {/* Offset mesh so pivot is at base. Height is 5.0, so y=2.5 puts base at 0. */}
                          <mesh position={[0, 2.5, 0]} geometry={LOG_GEO} castShadow>
                              <meshStandardMaterial color="#5c4033" roughness={0.9} />
                          </mesh>
-                         {/* Leaves */}
                          <mesh position={[0, 5.0, 0]} geometry={LEAVES_GEO} castShadow>
                              <meshStandardMaterial color="#2E8B57" flatShading />
                          </mesh>
+                    </group>
+                )}
+                {data.type === ObjectType.BARRIER_HIGH && (
+                    <group>
+                        {/* High Beam / Barrier */}
+                        <mesh geometry={BARRIER_HIGH_GEO} position={[0, 0, 0]} castShadow>
+                             <meshStandardMaterial color={data.color} emissive={data.color} emissiveIntensity={2} toneMapped={false} />
+                        </mesh>
+                        {/* Side supports visual only */}
+                        <mesh position={[-LANE_WIDTH/2, -1, 0]}>
+                            <cylinderGeometry args={[0.05, 0.05, 2, 8]} />
+                            <meshStandardMaterial color="#333" />
+                        </mesh>
+                        <mesh position={[LANE_WIDTH/2, -1, 0]}>
+                            <cylinderGeometry args={[0.05, 0.05, 2, 8]} />
+                            <meshStandardMaterial color="#333" />
+                        </mesh>
                     </group>
                 )}
                 {data.type === ObjectType.POWERUP_INVINCIBILITY && (

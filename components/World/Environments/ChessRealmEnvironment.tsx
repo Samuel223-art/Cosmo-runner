@@ -1,5 +1,4 @@
 
-
 /**
  * @license
  * SPDX-License-Identifier: Apache-2.0
@@ -11,7 +10,6 @@ import * as THREE from 'three';
 import { useStore } from '../../../store';
 import { LANE_WIDTH } from '../../../types';
 import { Stars } from '@react-three/drei';
-import { BaseParticleField } from './SharedComponents';
 import { audio } from '../../System/Audio';
 
 const CHUNK_LENGTH_CHESS = 400;
@@ -19,11 +17,10 @@ const CHUNK_LENGTH_CHESS = 400;
 const ChessParticles = () => {
     const particles = useMemo(() => {
         const temp = [];
-        for (let i = 0; i < 800; i++) {
+        for (let i = 0; i < 200; i++) { // Reduced count
             const z = -450 + Math.random() * 550;
             const parallaxFactor = 1.0 + Math.random();
             const scale = 0.2 + Math.random() * 0.3;
-            // White or Black cubes
             temp.push({ 
                 x: (Math.random() - 0.5) * 400, 
                 y: Math.random() * 150, 
@@ -37,8 +34,6 @@ const ChessParticles = () => {
         return temp;
     }, []);
 
-    // We can reuse BaseParticleField, but we might want cubes instead of spheres.
-    // BaseParticleField uses spheres. Let's make a custom one for cubes.
     const speed = useStore(state => state.speed);
     const instancedMeshRef = useRef<THREE.InstancedMesh>(null);
     const dummy = useMemo(() => new THREE.Object3D(), []);
@@ -66,7 +61,6 @@ const ChessParticles = () => {
             dummy.updateMatrix();
             instancedMeshRef.current!.setMatrixAt(i, dummy.matrix);
             
-            // Randomly color black or white
             const isWhite = i % 2 === 0;
             instancedMeshRef.current!.setColorAt(i, isWhite ? new THREE.Color('#ffffff') : new THREE.Color('#111111'));
         });
@@ -84,7 +78,6 @@ const ChessParticles = () => {
 
 const ChessFloor = () => {
     const { laneCount } = useStore();
-    // Sleek dark polished floor instead of checkerboard
     return (
         <mesh receiveShadow position={[0, -0.02, -CHUNK_LENGTH_CHESS / 2]} rotation={[-Math.PI / 2, 0, 0]}>
             <planeGeometry args={[laneCount * LANE_WIDTH * 10, CHUNK_LENGTH_CHESS]} />
@@ -98,11 +91,11 @@ const GiantChessPieces = () => {
     const pieces = useMemo(() => {
         const temp: { position: [number, number, number], scale: number, type: 'rook' | 'knight' }[] = [];
         const baseOffset = (laneCount * LANE_WIDTH / 2);
-        for (let i = 0; i < 40; i++) {
+        for (let i = 0; i < 20; i++) { // Reduced count
             const side = Math.random() > 0.5 ? 1 : -1;
             const x = side * (baseOffset + 15 + Math.random() * 80);
             const z = -Math.random() * CHUNK_LENGTH_CHESS;
-            const y = -2; // Slightly buried
+            const y = -2; 
             temp.push({ 
                 position: [x, y, z], 
                 scale: 5 + Math.random() * 5, 
@@ -112,9 +105,8 @@ const GiantChessPieces = () => {
         return temp;
     }, [laneCount]);
 
-    // Simple Primitives for background pieces
-    const rookGeo = useMemo(() => new THREE.CylinderGeometry(1, 1.2, 4, 8), []);
-    const knightGeo = useMemo(() => new THREE.ConeGeometry(1, 3, 4), []); // Abstract knight
+    const rookGeo = useMemo(() => new THREE.CylinderGeometry(1, 1.2, 4, 6), []);
+    const knightGeo = useMemo(() => new THREE.ConeGeometry(1, 3, 4), []); 
     
     const whiteMat = useMemo(() => new THREE.MeshStandardMaterial({ color: '#eeeeee', roughness: 0.1 }), []);
     const blackMat = useMemo(() => new THREE.MeshStandardMaterial({ color: '#222222', roughness: 0.1 }), []);
@@ -167,7 +159,6 @@ const ChessRealmEnvironment = () => {
     const contentRef1 = useRef<THREE.Group>(null);
     const contentRef2 = useRef<THREE.Group>(null);
 
-    // Audio Ambience Management
     useEffect(() => {
         audio.startChessAmbience();
         return () => {
@@ -199,11 +190,10 @@ const ChessRealmEnvironment = () => {
             <directionalLight castShadow position={[50, 80, 50]} intensity={1.2} color="#ffffff" shadow-mapSize={[1024, 1024]} />
             <spotLight position={[0, 100, 0]} angle={0.5} penumbra={1} intensity={1} color="#ffd700" />
             
-            <Stars radius={120} depth={50} count={5000} factor={4} saturation={0} fade speed={1} />
+            <Stars radius={120} depth={50} count={3000} factor={4} saturation={0} fade speed={1} />
             
-            {/* Big Moon */}
             <mesh position={[0, 60, -250]}>
-                <sphereGeometry args={[30, 32, 32]} />
+                <sphereGeometry args={[30, 16, 16]} />
                 <meshBasicMaterial color="#ffffee" fog={false} />
             </mesh>
 

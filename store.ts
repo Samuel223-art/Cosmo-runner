@@ -27,6 +27,9 @@ interface GameState {
   hasDoubleJump: boolean;
   hasHover: boolean;
   
+  // Player State
+  isSliding: boolean;
+  
   // Timers & Durations
   powerUpDurationAdd: number; // Extra milliseconds
   damageShieldDuration: number; // Milliseconds
@@ -52,6 +55,7 @@ interface GameState {
   collectPowerUp: (type: 'INVINCIBILITY' | 'SCORE_MULTIPLIER') => void;
   setStatus: (status: GameStatus) => void;
   setDistance: (dist: number) => void;
+  setSliding: (isSliding: boolean) => void;
   
   // Shop
   buyItem: (id: string, cost: number) => boolean;
@@ -82,6 +86,7 @@ export const useStore = create<GameState>((set, get) => ({
   
   hasDoubleJump: false,
   hasHover: false,
+  isSliding: false,
   powerUpDurationAdd: 0,
   damageShieldDuration: BASE_SHIELD_DURATION,
 
@@ -94,7 +99,12 @@ export const useStore = create<GameState>((set, get) => ({
   scoreMultiplierExpiry: 0,
   scoreMultiplierTotalDuration: 0,
 
-  showMenu: () => set(state => ({ status: GameStatus.MENU, previousStatus: state.status })),
+  showMenu: () => set(state => ({ 
+      status: GameStatus.MENU, 
+      previousStatus: state.status,
+      level: 1, // Reset to 1
+      visualLevel: 1 // Reset to 1
+  })),
 
   startGame: (startLevel = 1) => {
     let newSpeed;
@@ -128,6 +138,7 @@ export const useStore = create<GameState>((set, get) => ({
       
       hasDoubleJump: false,
       hasHover: false,
+      isSliding: false,
       powerUpDurationAdd: 0,
       damageShieldDuration: BASE_SHIELD_DURATION,
       isInvincible: false,
@@ -152,6 +163,7 @@ export const useStore = create<GameState>((set, get) => ({
     distance: 0,
     hasDoubleJump: false,
     hasHover: false,
+    isSliding: false,
     powerUpDurationAdd: 0,
     damageShieldDuration: BASE_SHIELD_DURATION,
     isInvincible: false,
@@ -286,7 +298,7 @@ export const useStore = create<GameState>((set, get) => ({
     if (state.level > state.visualLevel) {
         return { 
             status: nextStatus, 
-            previousStatus: GameStatus.SHOP,
+            previousStatus: GameStatus.SHOP, 
             visualLevel: state.level 
         };
     }
@@ -328,6 +340,8 @@ export const useStore = create<GameState>((set, get) => ({
   activateInvincibilityAbility: () => {
     // Placeholder if we add manual activation abilities later
   },
+
+  setSliding: (isSliding) => set({ isSliding }),
 
   setStatus: (status) => set((state) => ({ status, previousStatus: state.status })),
 }));

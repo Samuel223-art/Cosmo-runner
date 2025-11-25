@@ -25,6 +25,7 @@ export enum ObjectType {
   POWERUP_INVINCIBILITY = 'POWERUP_INVINCIBILITY',
   POWERUP_SCORE_MULTIPLIER = 'POWERUP_SCORE_MULTIPLIER',
   FALLING_TREE = 'FALLING_TREE',
+  BARRIER_HIGH = 'BARRIER_HIGH',
 }
 
 export interface GameObject {
@@ -92,29 +93,29 @@ const SNOW_COLORS = [
     '#c7d2fe', // indigo-200
 ];
 
-// Level 4: Forest (Earthy/Green colors)
+// Level 4: Forest - Nature colors (High visibility but not neon)
 const FOREST_COLORS = [
-    '#22c55e', // green-500
-    '#84cc16', // lime-500
-    '#4d7c0f', // lime-800
-    '#166534', // green-800
-    '#a3e635', // lime-400
-    '#15803d', // green-700
-    '#65a30d', // lime-600
-    '#14532d', // green-900
+    '#ffffff', // White
+    '#ffd700', // Gold
+    '#ffa500', // Orange
+    '#87ceeb', // Sky Blue
+    '#90ee90', // Light Green
+    '#f0e68c', // Khaki
+    '#ffffff', 
+    '#ffd700',
 ];
 
-// Level 5: Chess (Black, White, Gold)
+// Level 5: Chess - High Contrast Neons against Black/White floor
 const CHESS_COLORS = [
-    '#ffffff', // White
-    '#000000', // Black (rendered as dark grey usually)
-    '#ffd700', // Gold
-    '#c0c0c0', // Silver
-    '#ffffff',
-    '#000000',
-    '#ffd700',
-    '#c0c0c0',
-    '#ffffff',
+    '#ff0000', // Red
+    '#00ff00', // Green
+    '#0000ff', // Blue
+    '#ffff00', // Yellow
+    '#ff00ff', // Magenta
+    '#00ffff', // Cyan
+    '#ff4500', // Orange Red
+    '#32cd32', // Lime
+    '#1e90ff', // Dodger Blue
 ];
 
 // Level 6: Crystal Caves (Purple, Magenta, Cyan)
@@ -154,4 +155,51 @@ export interface ShopItem {
     icon: any; // Lucide icon component
     type: 'UPGRADE' | 'CONSUMABLE' | 'ABILITY';
     oneTime?: boolean; 
+}
+
+// Global augmentation for React Three Fiber elements
+declare global {
+  namespace JSX {
+    interface IntrinsicElements {
+      [elemName: string]: any;
+    }
+  }
+}
+
+declare global {
+  namespace JSX {
+    interface IntrinsicElements {
+      group: any;
+      mesh: any;
+      instancedMesh: any;
+      primitive: any;
+      
+      // Lights
+      ambientLight: any;
+      directionalLight: any;
+      pointLight: any;
+      spotLight: any;
+      
+      // Effects/Misc
+      fog: any;
+      color: any;
+      
+      // Geometries
+      boxGeometry: any;
+      sphereGeometry: any;
+      planeGeometry: any;
+      cylinderGeometry: any;
+      coneGeometry: any;
+      tetrahedronGeometry: any;
+      dodecahedronGeometry: any;
+      icosahedronGeometry: any;
+      octahedronGeometry: any;
+      torusKnotGeometry: any;
+      
+      // Materials
+      meshBasicMaterial: any;
+      meshStandardMaterial: any;
+      shaderMaterial: any;
+    }
+  }
 }

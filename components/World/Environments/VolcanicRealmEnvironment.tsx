@@ -1,3 +1,4 @@
+
 /**
  * @license
  * SPDX-License-Identifier: Apache-2.0
@@ -18,7 +19,7 @@ const CHUNK_LENGTH = 400;
 const VolcanicParticles = () => {
     const particles = useMemo(() => {
         const temp = [];
-        for (let i = 0; i < 1000; i++) {
+        for (let i = 0; i < 300; i++) { // Reduced count
             const isEmber = Math.random() > 0.8;
             const z = -450 + Math.random() * 550;
             const parallaxFactor = isEmber ? (0.5 + Math.random() * 0.5) : (3.0 + Math.random() * 2.0);
@@ -38,7 +39,7 @@ const AshParticles = () => {
     
     const particles = useMemo(() => {
         const temp = [];
-        for (let i = 0; i < 1500; i++) {
+        for (let i = 0; i < 400; i++) { // Reduced count
             temp.push({ 
                 x: (Math.random() - 0.5) * 400, 
                 y: Math.random() * 200, 
@@ -59,8 +60,8 @@ const AshParticles = () => {
         
         particles.forEach((p, i) => {
             p.z += activeSpeed * delta * p.parallaxFactor;
-            p.y -= delta * (2.0 + p.parallaxFactor * 4); // Fall down
-            p.x = p.initialX + p.drift * Math.sin(state.clock.elapsedTime + p.z * 0.2); // Sway
+            p.y -= delta * (2.0 + p.parallaxFactor * 4); 
+            p.x = p.initialX + p.drift * Math.sin(state.clock.elapsedTime + p.z * 0.2); 
 
             if (p.y < -10) p.y = 150 + Math.random() * 50;
             if (p.z > 100) p.z = -550 - Math.random() * 50;
@@ -75,18 +76,17 @@ const AshParticles = () => {
 
     return (
         <instancedMesh ref={instancedMeshRef} args={[undefined, undefined, particles.length]}>
-            <sphereGeometry args={[0.5, 8, 8]} />
+            <sphereGeometry args={[0.5, 6, 6]} />
             <meshBasicMaterial color={'#222222'} transparent opacity={0.6} />
         </instancedMesh>
     );
 };
 
-// Fire Sprinkles from Eruption
 const EruptionDebris = ({ isErupting }: { isErupting: boolean }) => {
     const meshRef = useRef<THREE.InstancedMesh>(null);
     const dummy = useMemo(() => new THREE.Object3D(), []);
     const particles = useMemo(() => {
-        return new Array(200).fill(0).map(() => ({
+        return new Array(80).fill(0).map(() => ({ // Reduced count
             active: false,
             pos: new THREE.Vector3(),
             vel: new THREE.Vector3(),
@@ -99,22 +99,18 @@ const EruptionDebris = ({ isErupting }: { isErupting: boolean }) => {
         if (!meshRef.current) return;
         const safeDelta = Math.min(delta, 0.1);
 
-        // Spawn logic
         if (isErupting) {
-            // Spawn 2-5 particles per frame during eruption
             let spawnCount = 0;
             for (let i = 0; i < particles.length; i++) {
-                if (!particles[i].active && spawnCount < 5) {
+                if (!particles[i].active && spawnCount < 3) { // Lower spawn rate
                     particles[i].active = true;
                     particles[i].life = 1.0 + Math.random();
-                    // Start from background volcanoes
                     const startX = (Math.random() - 0.5) * 200;
                     particles[i].pos.set(startX, -5, -200 - Math.random() * 100);
-                    // Shoot up and forward towards player
                     particles[i].vel.set(
                         (Math.random() - 0.5) * 20, 
-                        40 + Math.random() * 40, // High vertical velocity
-                        80 + Math.random() * 40  // Moving towards camera
+                        40 + Math.random() * 40, 
+                        80 + Math.random() * 40 
                     );
                     particles[i].scale = 0.4 + Math.random() * 0.6;
                     spawnCount++;
@@ -125,13 +121,12 @@ const EruptionDebris = ({ isErupting }: { isErupting: boolean }) => {
         particles.forEach((p, i) => {
             if (p.active) {
                 p.life -= safeDelta * 0.5;
-                p.vel.y -= 80 * safeDelta; // Gravity
+                p.vel.y -= 80 * safeDelta; 
                 p.pos.addScaledVector(p.vel, safeDelta);
 
                 if (p.pos.y < -5 || p.life <= 0) {
                     p.active = false;
                     dummy.scale.set(0,0,0);
-                    // Occasional sizzle when hitting ground
                     if (Math.random() < 0.1 && p.pos.z > -20 && p.pos.z < 20) {
                         audio.playSizzle();
                     }
@@ -150,7 +145,7 @@ const EruptionDebris = ({ isErupting }: { isErupting: boolean }) => {
     });
 
     return (
-        <instancedMesh ref={meshRef} args={[undefined, undefined, 200]}>
+        <instancedMesh ref={meshRef} args={[undefined, undefined, 80]}>
             <tetrahedronGeometry args={[0.5, 0]} />
             <meshBasicMaterial color="#ff4400" toneMapped={false} />
         </instancedMesh>
@@ -161,7 +156,6 @@ const LavaFloor = () => {
     const matRef = useRef<THREE.ShaderMaterial>(null);
     useFrame((state) => {
         if (matRef.current && matRef.current.uniforms.uTime) {
-            // Faster time for more intense boiling
             matRef.current.uniforms.uTime.value = state.clock.elapsedTime;
         }
     });
@@ -172,7 +166,7 @@ const LavaFloor = () => {
 
     return (
         <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -5, -CHUNK_LENGTH / 2]}>
-            <planeGeometry args={[300, CHUNK_LENGTH, 100, 100]} />
+            <planeGeometry args={[300, CHUNK_LENGTH, 40, 40]} />
             <shaderMaterial
                 ref={matRef}
                 uniforms={uniforms}
@@ -182,7 +176,6 @@ const LavaFloor = () => {
                     void main() {
                         vUv = uv;
                         vec3 pos = position;
-                        // Add some vertex displacement for boiling heavy liquid
                         float boil = sin(pos.x * 0.1 + uTime * 2.0) * cos(pos.y * 0.1 + uTime * 1.5) * 1.5;
                         pos.z += boil;
                         gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
@@ -191,7 +184,6 @@ const LavaFloor = () => {
                 fragmentShader={`
                     uniform float uTime;
                     varying vec2 vUv;
-                    
                     vec3 permute(vec3 x) { return mod(((x*34.0)+1.0)*x, 289.0); }
                     float snoise(vec2 v) {
                         const vec4 C = vec4(0.211324865405187, 0.366025403784439, -0.577350269189626, 0.024390243902439);
@@ -216,34 +208,22 @@ const LavaFloor = () => {
                         g.yz = a0.yz * vec2(x1.x,x2.x) + h.yz * vec2(x1.y,x2.y);
                         return 130.0 * dot(m, g);
                     }
-
                     void main() {
-                        vec2 uv = vUv * 12.0; // Higher density
-                        float t = uTime * 0.5; // Faster flow
-
-                        // 1. Base Magma Flow
+                        vec2 uv = vUv * 12.0;
+                        float t = uTime * 0.5; 
                         float flow = snoise(uv * 0.5 + vec2(t * 0.5, t * 0.2));
-                        
-                        // 2. Crusting/Cracks (More turbulent)
                         float cracks = snoise(uv * 3.0 + vec2(t * 0.1, 0.0));
                         float crackMask = smoothstep(0.35, 0.45, abs(cracks)); 
-                        
-                        // 3. Boiling/Bubbling (Intense)
                         float boil = snoise(uv * 8.0 + vec2(0.0, uTime * 2.0));
                         float boilMask = smoothstep(0.5, 0.9, boil);
-
                         vec3 darkRock = vec3(0.15, 0.05, 0.05);
                         vec3 magmaDark = vec3(0.6, 0.1, 0.0);
                         vec3 magmaBright = vec3(1.0, 0.4, 0.0);
                         vec3 hotWhite = vec3(1.0, 1.0, 0.8);
-
                         vec3 color = mix(magmaDark, magmaBright, flow * 0.5 + 0.5);
                         color = mix(color, darkRock, crackMask);
                         color = mix(color, hotWhite, boilMask);
-                        
-                        // Pulsating heat
                         color *= 1.0 + 0.15 * sin(uTime * 3.0 + uv.x);
-
                         gl_FragColor = vec4(color, 1.0);
                     }
                 `}
@@ -268,13 +248,9 @@ const HoveringRock: React.FC<HoveringRockProps> = ({ position, scale, rotation }
 
     useFrame((state, delta) => {
         if (!meshRef.current) return;
-        
-        // Bobbing animation
         const time = state.clock.elapsedTime;
         const bob = Math.sin(time * 1.5 + randomOffset) * 1.5;
         meshRef.current.position.y = position[1] + bob;
-        
-        // Slow tumbling rotation
         meshRef.current.rotation.x += rotationSpeed.x * delta;
         meshRef.current.rotation.y += rotationSpeed.y * delta;
     });
@@ -297,12 +273,12 @@ const HoveringRocks = () => {
     const rocks = useMemo(() => {
         const temp: HoveringRockProps[] = [];
         const baseOffset = (laneCount * LANE_WIDTH / 2);
-        for (let i = 0; i < 80; i++) {
+        for (let i = 0; i < 40; i++) { // Reduced
             const side = Math.random() > 0.5 ? 1 : -1;
             const x = side * (baseOffset + 5 + Math.random() * 80);
             const z = -Math.random() * CHUNK_LENGTH;
             const scale = 2 + Math.random() * 6;
-            const y = -2 + Math.random() * 4; // Start slightly higher
+            const y = -2 + Math.random() * 4;
             temp.push({ 
                 position: [x, y, z], 
                 scale,
@@ -327,7 +303,7 @@ const HoveringRocks = () => {
 const LavaSplashes = () => {
     const instancedMeshRef = useRef<THREE.InstancedMesh>(null);
     const dummy = useMemo(() => new THREE.Object3D(), []);
-    const splashCount = 20;
+    const splashCount = 10; // Reduced
     
     const splashes = useMemo(() => new Array(splashCount).fill(0).map(() => ({
         active: false,
@@ -366,7 +342,6 @@ const LavaSplashes = () => {
                 } else {
                     s.pos.addScaledVector(s.vel, delta);
                     s.vel.y -= 25 * delta;
-                    
                     dummy.position.copy(s.pos);
                     const scale = Math.sin(Math.PI * (1.0 - s.life)) * (0.5 + Math.random() * 0.8);
                     dummy.scale.set(scale, scale, scale);
@@ -383,7 +358,7 @@ const LavaSplashes = () => {
 
     return (
         <instancedMesh ref={instancedMeshRef} args={[undefined, undefined, splashCount]}>
-            <sphereGeometry args={[0.5, 8, 8]} />
+            <sphereGeometry args={[0.5, 6, 6]} />
             <meshBasicMaterial color="#ffcc00" toneMapped={false} />
         </instancedMesh>
     );
@@ -417,7 +392,7 @@ const VolcanicLaneGuides: React.FC = () => {
 const ParallaxVolcanoes = React.forwardRef<THREE.Group, { position: [number, number, number] }>((props, ref) => {
     const volcanoes = useMemo(() => {
         const temp = [];
-        for (let i = 0; i < 8; i++) {
+        for (let i = 0; i < 4; i++) { // Reduced count
             const side = Math.random() > 0.5 ? 1 : -1;
             const x = side * (250 + Math.random() * 150);
             const z = -Math.random() * CHUNK_LENGTH;
@@ -467,13 +442,11 @@ const FallingRock = ({ position, active }: { position: THREE.Vector3, active: bo
 
 const CameraShaker = ({ isShaking }: { isShaking: boolean }) => {
     const { camera } = useThree();
-    const originalPos = useRef(new THREE.Vector3());
     const shaking = useRef(false);
 
     useFrame(() => {
         if (isShaking) {
             if (!shaking.current) {
-                // Store base offset? CameraController handles base pos, so we just add noise
                 shaking.current = true;
             }
             const strength = 0.3;
@@ -487,11 +460,6 @@ const CameraShaker = ({ isShaking }: { isShaking: boolean }) => {
 }
 
 const VolcanicEventController = ({ setErupting }: { setErupting: (v: boolean) => void }) => {
-    // 1. Wait random time
-    // 2. Spawn rock high up
-    // 3. Rock falls
-    // 4. Hit ground -> Splash Sound -> Eruption Sound -> Fire Sprinkles -> Camera Shake
-    
     const [rockActive, setRockActive] = useState(false);
     const [rockPos] = useState(new THREE.Vector3(0, 50, -100));
     const [isShaking, setIsShaking] = useState(false);
@@ -503,11 +471,9 @@ const VolcanicEventController = ({ setErupting }: { setErupting: (v: boolean) =>
         if (state.current === 'IDLE') {
             timer.current += delta;
             if (timer.current > 10 + Math.random() * 15) {
-                // Trigger Event
                 state.current = 'FALLING';
                 setRockActive(true);
                 rockVelocity.current = 0;
-                // Randomize rock start Z/X
                 rockPos.set((Math.random() - 0.5) * 100, 60, -150 - Math.random() * 100);
             }
         } else if (state.current === 'FALLING') {
@@ -515,20 +481,16 @@ const VolcanicEventController = ({ setErupting }: { setErupting: (v: boolean) =>
             rockPos.y -= rockVelocity.current * delta;
             
             if (rockPos.y < -5) {
-                // IMPACT
                 state.current = 'ERUPTING';
                 setRockActive(false);
                 audio.playLavaSplash();
                 
-                // Shake / Erupt sequence
                 setTimeout(() => {
                     audio.playEruption();
                     setErupting(true);
                     setIsShaking(true);
                     
-                    // Stop shaking after 2s
                     setTimeout(() => setIsShaking(false), 2000);
-                    // Stop particles after 3s
                     setTimeout(() => {
                         setErupting(false);
                         state.current = 'IDLE';
@@ -568,7 +530,6 @@ const VolcanicRealmEnvironment = () => {
     const bgRef2 = useRef<THREE.Group>(null);
     const [isErupting, setErupting] = useState(false);
 
-    // Start/Stop Audio
     useEffect(() => {
         audio.startVolcanicAmbience();
         return () => {
@@ -578,7 +539,6 @@ const VolcanicRealmEnvironment = () => {
 
     useFrame((state, delta) => {
         const movement = speed * delta;
-        // Foreground
         if (contentRef1.current) {
             contentRef1.current.position.z += movement;
             if (contentRef1.current.position.z > CHUNK_LENGTH) {
@@ -592,7 +552,6 @@ const VolcanicRealmEnvironment = () => {
             }
         }
 
-        // Parallax Background
         const bgMovement = movement * 0.1;
         if (bgRef1.current) {
             bgRef1.current.position.z += bgMovement;
