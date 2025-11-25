@@ -71,6 +71,9 @@ const GEM_GEOS = {
 const SNOWBALL_GEO = new THREE.SphereGeometry(LANE_WIDTH * 0.8, 20, 16);
 const SNOWBALL_GLOW_GEO = new THREE.SphereGeometry(LANE_WIDTH * 0.8 + 0.02, 20, 16);
 
+// Falling Tree Geometries
+const LOG_GEO = new THREE.CylinderGeometry(0.25, 0.35, 5.0, 8);
+const LEAVES_GEO = new THREE.ConeGeometry(1.0, 2.0, 6);
 
 // --- Shared Geometries ---
 const SQUID_BODY_GEO = new THREE.ConeGeometry(0.5, 1.2, 8);
@@ -83,6 +86,7 @@ const SHADOW_GEM_GEO = new THREE.CircleGeometry(0.6, 32);
 const SHADOW_SQUID_GEO = new THREE.CircleGeometry(0.8, 32);
 const SHADOW_INK_BLAST_GEO = new THREE.CircleGeometry(0.5, 32);
 const SHADOW_DEFAULT_GEO = new THREE.CircleGeometry(0.8, 6);
+const SHADOW_TREE_GEO = new THREE.PlaneGeometry(5.0, 1.0);
 const WHIRLPOOL_GEO = new THREE.PlaneGeometry(1, 1, 64, 64);
 
 const PARTICLE_COUNT = 600;
@@ -179,10 +183,11 @@ export const LevelManager: React.FC = () => {
     const isMenuReset = status === GameStatus.MENU;
     const isLevelUp = level !== prevLevel.current && status === GameStatus.PLAYING;
     const isVictoryReset = status === GameStatus.PLAYING && prevStatus.current === GameStatus.VICTORY;
+    const isGameStart = status === GameStatus.PLAYING && prevStatus.current === GameStatus.MENU;
 
-    if (isMenuReset || isRestart || isVictoryReset) {
+    if (isMenuReset || isRestart || isVictoryReset || isGameStart) {
         objectsRef.current = []; setRenderTrigger(t => t + 1);
-        distanceTraveled.current = 0; nextLetterDistance.current = getLetterInterval(1);
+        distanceTraveled.current = 0; nextLetterDistance.current = getLetterInterval(level);
     } else if (isLevelUp && level > 1) {
         objectsRef.current = objectsRef.current.filter(obj => obj.position[2] > -80);
         objectsRef.current.push({ id: uuidv4(), type: ObjectType.SHOP_PORTAL, position: [0, 0, -100], active: true });
@@ -222,13 +227,30 @@ export const LevelManager: React.FC = () => {
         const prevZ = obj.position[2];
         obj.position[2] += moveAmount;
 
+        // Alien Firing Logic
         if (obj.type === ObjectType.ALIEN && obj.active && !obj.hasFired) {
              if (obj.position[2] > -90) {
                  obj.hasFired = true;
-                 newSpawns.push({ id: uuidv4(), type: ObjectType.MISSILE, position: [obj.position[0], 1.0, obj.position[2] + 2], active: true, color: '#ffffff' });
+                 // Changed Missile Color to Red for Zone 2
+                 newSpawns.push({ id: uuidv4(), type: ObjectType.MISSILE, position: [obj.position[0], 1.0, obj.position[2] + 2], active: true, color: '#ff0000' });
                  hasChanges = true;
-                 window.dispatchEvent(new CustomEvent('particle-burst', { detail: { position: obj.position, color: '#aa00ff' } }));
+                 // Burst color updated to orange/red
+                 window.dispatchEvent(new CustomEvent('particle-burst', { detail: { position: obj.position, color: '#ff4400' } }));
              }
+        }
+
+        // Falling Tree Logic
+        if (obj.type === ObjectType.FALLING_TREE && obj.active) {
+            // Trigger fall when close enough
+            if (!obj.hasTriggered && (obj.position[2] - playerPos.z) > -50 && (obj.position[2] - playerPos.z) < 45) {
+                obj.hasTriggered = true;
+                // Play a crackling wood sound? (Reusing snow step or shatter for now as placeholder, or just none)
+            }
+
+            if (obj.hasTriggered) {
+                // Animate fall progress
+                obj.fallProgress = Math.min(1, (obj.fallProgress || 0) + safeDelta * 2.5);
+            }
         }
 
         let keep = true;
@@ -242,34 +264,65 @@ export const LevelManager: React.FC = () => {
                 }
             } else if (inZZone) {
                 const collisionThreshold = obj.isSnowball ? LANE_WIDTH : 0.9;
-                if (Math.abs(obj.position[0] - playerPos.x) < collisionThreshold) {
-                     const isDamageSource = obj.type === ObjectType.OBSTACLE || obj.type === ObjectType.ALIEN || obj.type === ObjectType.MISSILE;
-                     if (isDamageSource) {
-                         const playerBottom = playerPos.y; const playerTop = playerPos.y + 1.8;
-                         let objBottom = obj.position[1] - 0.5, objTop = obj.position[1] + 0.5;
-                         if (obj.type === ObjectType.OBSTACLE) { objBottom = 0; objTop = obj.isSnowball ? LANE_WIDTH * 1.6 : 1.6; }
-                         if ((playerBottom < objTop) && (playerTop > objBottom)) { 
-                             if (isInvincible && obj.type === ObjectType.OBSTACLE) {
-                                 audio.playShatter();
-                                 window.dispatchEvent(new CustomEvent('particle-burst', { detail: { position: obj.position, color: '#a5f3fc', burstAmount: 100 }}));
-                                 obj.active = false; hasChanges = true;
-                             } else {
-                                 window.dispatchEvent(new Event('player-hit')); obj.active = false; hasChanges = true;
-                                 if (obj.type === ObjectType.MISSILE) window.dispatchEvent(new CustomEvent('particle-burst', { detail: { position: obj.position, color: '#ffffff', burstAmount: 60 } }));
+                
+                let isHit = false;
+
+                // SPECIAL COLLISION FOR FALLING TREE
+                if (obj.type === ObjectType.FALLING_TREE) {
+                    // Only collide if the tree has fallen enough to block the path
+                    if ((obj.fallProgress || 0) > 0.6) {
+                        const fallDir = obj.fallDirection || 1;
+                        // The tree base is at obj.position[0] (which is the outer edge of lane).
+                        // It falls inwards. Length is approx 4.5.
+                        // If Dir 1 (Right): Base at Left Edge. Covers [x, x+4.5].
+                        // If Dir -1 (Left): Base at Right Edge. Covers [x-4.5, x].
+                        const minX = fallDir === 1 ? obj.position[0] : obj.position[0] - 4.5;
+                        const maxX = fallDir === 1 ? obj.position[0] + 4.5 : obj.position[0];
+
+                        if (playerPos.x > minX - 0.5 && playerPos.x < maxX + 0.5) {
+                            // It covers the lane. Check Height.
+                            const playerBottom = playerPos.y;
+                            const logHeight = 0.8; // Low enough to jump over
+                            if (playerBottom < logHeight) {
+                                isHit = true;
+                            }
+                        }
+                    }
+                } else {
+                    // STANDARD COLLISION
+                    if (Math.abs(obj.position[0] - playerPos.x) < collisionThreshold) {
+                         const isDamageSource = obj.type === ObjectType.OBSTACLE || obj.type === ObjectType.ALIEN || obj.type === ObjectType.MISSILE;
+                         if (isDamageSource) {
+                             const playerBottom = playerPos.y; const playerTop = playerPos.y + 1.8;
+                             let objBottom = obj.position[1] - 0.5, objTop = obj.position[1] + 0.5;
+                             if (obj.type === ObjectType.OBSTACLE) { objBottom = 0; objTop = obj.isSnowball ? LANE_WIDTH * 1.6 : 1.6; }
+                             if ((playerBottom < objTop) && (playerTop > objBottom)) { 
+                                 isHit = true;
+                             }
+                         } else {
+                             if (Math.abs(obj.position[1] - playerPos.y) < 2.5) {
+                                let collected = false;
+                                if (obj.type === ObjectType.GEM) { collectGem(obj.points || 50); audio.playGemCollect(); collected = true; }
+                                if (obj.type === ObjectType.LETTER && obj.targetIndex !== undefined) { collectLetter(obj.targetIndex); audio.playLetterCollect(); collected = true; }
+                                if (obj.powerUpType) { collectPowerUp(obj.powerUpType); audio.playLetterCollect(); collected = true; }
+                                if (collected) {
+                                    window.dispatchEvent(new CustomEvent('particle-burst', { detail: { position: obj.position, color: obj.color || '#ffffff' } }));
+                                    obj.active = false; hasChanges = true;
+                                }
                              }
                          }
-                     } else {
-                         if (Math.abs(obj.position[1] - playerPos.y) < 2.5) {
-                            let collected = false;
-                            if (obj.type === ObjectType.GEM) { collectGem(obj.points || 50); audio.playGemCollect(); collected = true; }
-                            if (obj.type === ObjectType.LETTER && obj.targetIndex !== undefined) { collectLetter(obj.targetIndex); audio.playLetterCollect(); collected = true; }
-                            if (obj.powerUpType) { collectPowerUp(obj.powerUpType); audio.playLetterCollect(); collected = true; }
-                            if (collected) {
-                                window.dispatchEvent(new CustomEvent('particle-burst', { detail: { position: obj.position, color: obj.color || '#ffffff' } }));
-                                obj.active = false; hasChanges = true;
-                            }
-                         }
-                     }
+                    }
+                }
+
+                if (isHit) {
+                    if (isInvincible && (obj.type === ObjectType.OBSTACLE || obj.type === ObjectType.FALLING_TREE)) {
+                        audio.playShatter();
+                        window.dispatchEvent(new CustomEvent('particle-burst', { detail: { position: obj.position, color: '#a5f3fc', burstAmount: 100 }}));
+                        obj.active = false; hasChanges = true;
+                    } else {
+                        window.dispatchEvent(new Event('player-hit')); obj.active = false; hasChanges = true;
+                        if (obj.type === ObjectType.MISSILE) window.dispatchEvent(new CustomEvent('particle-burst', { detail: { position: obj.position, color: '#ff0000', burstAmount: 60 } }));
+                    }
                 }
             }
         }
@@ -305,9 +358,35 @@ export const LevelManager: React.FC = () => {
                 const isInvincibility = Math.random() > 0.5;
                 keptObjects.push({ id: uuidv4(), active: true, position: [spawnLane * LANE_WIDTH, 1.2, spawnZ], type: isInvincibility ? ObjectType.POWERUP_INVINCIBILITY : ObjectType.POWERUP_SCORE_MULTIPLIER, powerUpType: isInvincibility ? 'INVINCIBILITY' : 'SCORE_MULTIPLIER', color: isInvincibility ? '#ffd700' : '#00ff88'});
             } else if (p < (visualLevel === 3 ? 0.95 : 0.80)) {
+                // Zone 2 Alien Logic
                 const spawnSquid = visualLevel === 2 && Math.random() < 0.2;
+                // Zone 4 Falling Tree Logic
+                const spawnFallingTree = visualLevel === 4 && Math.random() < 0.25;
+
                 if (spawnSquid) {
                     keptObjects.push({ id: uuidv4(), type: ObjectType.ALIEN, position: [spawnLane * LANE_WIDTH, 2.5, spawnZ], active: true, color: '#55ccaa', hasFired: false });
+                } else if (spawnFallingTree) {
+                    // Spawn a falling tree on the side lanes only
+                    const side = Math.random() > 0.5 ? -1 : 1; // -1 Left, 1 Right
+                    // If side is -1 (Left), we want it to fall RIGHT (Direction 1)
+                    // If side is 1 (Right), we want it to fall LEFT (Direction -1)
+                    const fallDir = -side;
+                    
+                    // Base position: Just outside the outer lanes
+                    // Lane -1 is at -2.2. Lane 1 is at 2.2.
+                    // We want the base to be around +/- 4.5 so when it falls (length ~5), it covers the lane.
+                    const spawnX = side * (laneCount * LANE_WIDTH * 0.5 + 1.2); 
+                    
+                    keptObjects.push({ 
+                        id: uuidv4(), 
+                        type: ObjectType.FALLING_TREE, 
+                        position: [spawnX, 0, spawnZ], 
+                        active: true, 
+                        color: '#5c4033', 
+                        fallDirection: fallDir,
+                        fallProgress: 0,
+                        hasTriggered: false
+                    });
                 } else {
                      if (visualLevel === 3 && Math.random() < 0.25) { // 25% chance for a big snowball
                         const maxLane = Math.floor(laneCount / 2);
@@ -355,18 +434,33 @@ const GameEntity: React.FC<{ data: GameObject, visualLevel: number }> = React.me
     const visualRef = useRef<THREE.Group>(null);
     const shadowRef = useRef<THREE.Mesh>(null);
     const whirlpoolMatRef = useRef<THREE.ShaderMaterial>(null);
+    const treePivotRef = useRef<THREE.Group>(null);
     const { laneCount } = useStore();
     
     useFrame((state, delta) => {
         if (groupRef.current) groupRef.current.position.set(data.position[0], 0, data.position[2]);
         if (whirlpoolMatRef.current && whirlpoolMatRef.current.uniforms.uTime) whirlpoolMatRef.current.uniforms.uTime.value = state.clock.elapsedTime;
 
+        // Falling Tree Animation
+        if (data.type === ObjectType.FALLING_TREE && treePivotRef.current) {
+            // data.fallProgress is updated in LevelManager loop
+            const progress = data.fallProgress || 0;
+            const dir = data.fallDirection || 1;
+            // Rotate from 0 (up) to 90 degrees (flat). Direction determines sign.
+            // If falling Right (1), we rotate -90 deg on Z? No, Z axis comes out of screen.
+            // Right is +X. Up is +Y.
+            // Rotating around Z: Positive is Counter-Clockwise (Left). Negative is Clockwise (Right).
+            const targetAngle = -dir * (Math.PI / 2);
+            const currentAngle = targetAngle * progress;
+            treePivotRef.current.rotation.z = currentAngle;
+        }
+
         if (visualRef.current) {
             const baseHeight = data.position[1];
             if (data.type === ObjectType.ALIEN) {
                  visualRef.current.position.y = baseHeight + Math.sin(state.clock.elapsedTime * 3) * 0.3;
                  visualRef.current.rotation.y += delta * 0.5;
-            } else if (data.type !== ObjectType.OBSTACLE && data.type !== ObjectType.SHOP_PORTAL) {
+            } else if (data.type !== ObjectType.OBSTACLE && data.type !== ObjectType.SHOP_PORTAL && data.type !== ObjectType.FALLING_TREE) {
                 visualRef.current.rotation.y += delta * 2;
                 const bobOffset = Math.sin(state.clock.elapsedTime * 4 + data.position[0]) * 0.1;
                 visualRef.current.position.y = baseHeight + bobOffset;
@@ -383,6 +477,7 @@ const GameEntity: React.FC<{ data: GameObject, visualLevel: number }> = React.me
         if (data.type === ObjectType.SHOP_PORTAL) return null;
         if (data.type === ObjectType.ALIEN) return SHADOW_SQUID_GEO;
         if (data.type === ObjectType.MISSILE) return SHADOW_INK_BLAST_GEO;
+        if (data.type === ObjectType.FALLING_TREE) return SHADOW_TREE_GEO;
         if (data.isSnowball) return new THREE.CircleGeometry(LANE_WIDTH * 0.8, 32);
         return SHADOW_DEFAULT_GEO; 
     }, [data.type, data.powerUpType, data.isSnowball]);
@@ -396,7 +491,7 @@ const GameEntity: React.FC<{ data: GameObject, visualLevel: number }> = React.me
 
     return (
         <group ref={groupRef}>
-            {shadowGeo && <mesh ref={shadowRef} rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.03, 0]} geometry={shadowGeo}><meshBasicMaterial color="#000000" opacity={0.3} transparent /></mesh>}
+            {shadowGeo && <mesh ref={shadowRef} rotation={[-Math.PI / 2, 0, 0]} position={[data.type === ObjectType.FALLING_TREE ? (data.fallDirection || 1) * 2.5 : 0, 0.03, 0]} geometry={shadowGeo}><meshBasicMaterial color="#000000" opacity={0.3} transparent /></mesh>}
             <group ref={visualRef} position={[0, data.position[1], 0]} rotation={data.rotation || [0, 0, 0]}>
                 {data.type === ObjectType.SHOP_PORTAL && (<><Center position={[0, 5, 0.6]}><Text3D font={FONT_URL} size={1.2} height={0.2}>ABYSSAL FORGE<meshBasicMaterial color="#ffff00" /></Text3D></Center><mesh rotation={[-Math.PI/2, 0, 0]} scale={[laneCount * LANE_WIDTH * 1.5, laneCount * LANE_WIDTH * 1.5, 1]} geometry={WHIRLPOOL_GEO}><shaderMaterial ref={whirlpoolMatRef} transparent uniforms={{ uTime: { value: 0 }, uColor: { value: new THREE.Color('#00ffff') } }} vertexShader={`varying vec2 vUv; uniform float uTime; void main() { vUv = uv; vec2 c = vec2(0.5, 0.5); float d = distance(vUv, c); float a = atan(vUv.y - c.y, vUv.x - c.x); float r = d * (1.0 + 0.2 * sin(d * 10.0 - uTime * 2.0)); vec3 pos = position; pos.z += sin(d * 10.0 + uTime) * 0.2; gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0); }`} fragmentShader={`varying vec2 vUv; uniform float uTime; uniform vec3 uColor; void main() { vec2 c = vec2(0.5, 0.5); float d = distance(vUv, c); float a = atan(vUv.y - c.y, vUv.x - c.x) / (2.0 * 3.14159); float spiral = mod(a + d * 5.0 - uTime * 0.5, 0.2); float alpha = smoothstep(0.5, 0.0, d) * (1.0 - smoothstep(0.05, 0.0, spiral)); gl_FragColor = vec4(uColor, alpha); }`} /></mesh></>)}
                 {data.type === ObjectType.OBSTACLE && (<group><mesh geometry={data.isSnowball ? SNOWBALL_GEO : OBSTACLE_GEOS[visualLevel as keyof typeof OBSTACLE_GEOS]} castShadow><meshStandardMaterial color={colors.obstacle} roughness={data.isSnowball ? 0.9 : 0.6} metalness={0.8} vertexColors={!data.isSnowball && visualLevel === 1} /></mesh><mesh geometry={data.isSnowball ? SNOWBALL_GLOW_GEO : OBSTACLE_GLOW_GEOS[visualLevel as keyof typeof OBSTACLE_GLOW_GEOS]}><meshBasicMaterial color={colors.obstacleGlow} wireframe transparent opacity={0.3} /></mesh></group>)}
@@ -404,6 +499,18 @@ const GameEntity: React.FC<{ data: GameObject, visualLevel: number }> = React.me
                 {data.type === ObjectType.MISSILE && (<mesh geometry={INK_BLAST_CORE_GEO}><meshStandardMaterial color={data.color} emissive={data.color} emissiveIntensity={5} toneMapped={false} /></mesh>)}
                 {data.type === ObjectType.GEM && (<mesh castShadow geometry={GEM_GEOS[visualLevel as keyof typeof GEM_GEOS]} rotation={visualLevel === 2 ? [Math.PI/2,0,0] : [0,0,0]}><meshStandardMaterial color={colors.gem} roughness={0.1} metalness={0.2} emissive={colors.gemEmissive} emissiveIntensity={0.2} /></mesh>)}
                 {data.type === ObjectType.LETTER && (<group scale={[1.5, 1.5, 1.5]}><Center><Text3D font={FONT_URL} size={0.8} height={0.5} bevelEnabled bevelThickness={0.02} bevelSize={0.02} bevelSegments={5}>{data.value}<meshStandardMaterial color={data.color} emissive={data.color} emissiveIntensity={1.5} /></Text3D></Center></group>)}
+                {data.type === ObjectType.FALLING_TREE && (
+                    <group ref={treePivotRef} position={[0, 0, 0]}>
+                         {/* Offset mesh so pivot is at base. Height is 5.0, so y=2.5 puts base at 0. */}
+                         <mesh position={[0, 2.5, 0]} geometry={LOG_GEO} castShadow>
+                             <meshStandardMaterial color="#5c4033" roughness={0.9} />
+                         </mesh>
+                         {/* Leaves */}
+                         <mesh position={[0, 5.0, 0]} geometry={LEAVES_GEO} castShadow>
+                             <meshStandardMaterial color="#2E8B57" flatShading />
+                         </mesh>
+                    </group>
+                )}
                 {data.type === ObjectType.POWERUP_INVINCIBILITY && (
                     <Float>
                         <mesh geometry={POWERUP_SHIELD_GEO}><meshStandardMaterial color={data.color} emissive={data.color} emissiveIntensity={2} metalness={1} roughness={0.1} /></mesh>

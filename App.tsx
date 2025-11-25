@@ -4,7 +4,7 @@
 */
 
 
-import React, { Suspense } from 'react';
+import React, { Suspense, useEffect, useRef } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 import { Environment } from './components/World/Environment';
@@ -17,6 +17,16 @@ import { useStore } from './store';
 // Dynamic Camera Controller
 const CameraController = () => {
   const { camera } = useThree();
+  const shakeIntensity = useRef(0);
+
+  useEffect(() => {
+    const onPlayerHit = () => {
+      shakeIntensity.current = 0.6; // Set shake intensity on hit
+    };
+    
+    window.addEventListener('player-hit', onPlayerHit);
+    return () => window.removeEventListener('player-hit', onPlayerHit);
+  }, []);
   
   useFrame((state, delta) => {
     // New fixed camera position, 70% of the original base values
@@ -28,6 +38,18 @@ const CameraController = () => {
     // Smoothly interpolate camera position
     camera.position.lerp(targetPos, delta * 2.0);
     
+    // Apply Shake
+    if (shakeIntensity.current > 0) {
+        const shake = shakeIntensity.current;
+        camera.position.x += (Math.random() - 0.5) * shake;
+        camera.position.y += (Math.random() - 0.5) * shake;
+        camera.position.z += (Math.random() - 0.5) * shake;
+
+        // Decay shake
+        shakeIntensity.current = THREE.MathUtils.lerp(shakeIntensity.current, 0, delta * 4.0);
+        if (shakeIntensity.current < 0.01) shakeIntensity.current = 0;
+    }
+
     // Look further down the track from the new lower angle
     camera.lookAt(0, -1, -30); 
   });

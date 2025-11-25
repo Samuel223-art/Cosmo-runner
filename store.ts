@@ -62,7 +62,7 @@ interface GameState {
 }
 
 const MAX_LEVEL = 6;
-const BASE_POWERUP_DURATION = 15000;
+const BASE_POWERUP_DURATION = 7000;
 const BASE_SHIELD_DURATION = 1500;
 
 export const useStore = create<GameState>((set, get) => ({

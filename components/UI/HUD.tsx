@@ -1,5 +1,4 @@
 
-
 /**
  * @license
  * SPDX-License-Identifier: Apache-2.0
@@ -7,7 +6,7 @@
 
 
 import React, { useState, useEffect } from 'react';
-import { Heart, Zap, Trophy, MapPin, Diamond, TreePine, ArrowUpCircle, Shield, Activity, PlusCircle, Play, X, User, CheckSquare, Package, Star, Waves, Flame, Snowflake, Crown, Timer, Feather, Pause, Map } from 'lucide-react';
+import { Heart, Zap, Trophy, MapPin, Diamond, TreePine, ArrowUpCircle, Shield, Activity, PlusCircle, Play, X, User, CheckSquare, Package, Star, Waves, Flame, Snowflake, Crown, Timer, Feather, Pause, Map, Home } from 'lucide-react';
 import { useStore } from '../../store';
 import { GameStatus, LEVEL_COLORS, LEVEL_TARGETS, ShopItem, RUN_SPEED_BASE } from '../../types';
 import { audio } from '../System/Audio';
@@ -376,7 +375,7 @@ const THEME_COLORS = {
 };
 
 export const HUD: React.FC = () => {
-  const { score, lives, maxLives, collectedLetters, status, level, visualLevel, restartGame, startGame, gemsCollected, distance, isInvincible, invincibilityExpiry, invincibilityTotalDuration, isScoreMultiplierActive, scoreMultiplierExpiry, scoreMultiplierTotalDuration, speed, setStatus, openShop } = useStore();
+  const { score, lives, maxLives, collectedLetters, status, level, visualLevel, restartGame, startGame, gemsCollected, distance, isInvincible, invincibilityExpiry, invincibilityTotalDuration, isScoreMultiplierActive, scoreMultiplierExpiry, scoreMultiplierTotalDuration, speed, setStatus, openShop, showMenu } = useStore();
   const [displayedScore, setDisplayedScore] = useState(score);
   const [showZoneSelector, setShowZoneSelector] = useState(false);
   const target = LEVEL_TARGETS[level - 1] || [];
@@ -470,12 +469,21 @@ export const HUD: React.FC = () => {
                     </div>
                 </div>
 
-                <button 
-                  onClick={() => { audio.init(); restartGame(); }}
-                  className="px-8 md:px-10 py-3 md:py-4 bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-bold text-lg md:text-xl rounded hover:scale-105 transition-all shadow-[0_0_20px_rgba(0,255,255,0.4)]"
-                >
-                    RUN AGAIN
-                </button>
+                <div className="flex flex-col space-y-4 w-full max-w-xs items-center">
+                    <button 
+                    onClick={() => { audio.init(); restartGame(); }}
+                    className="w-full px-8 py-3 md:py-4 bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-bold text-lg md:text-xl rounded hover:scale-105 transition-all shadow-[0_0_20px_rgba(0,255,255,0.4)]"
+                    >
+                        RUN AGAIN
+                    </button>
+                    
+                    <button 
+                    onClick={() => { audio.init(); showMenu(); }}
+                    className="w-full px-8 py-3 bg-transparent border border-gray-600 text-gray-400 font-bold text-lg rounded hover:bg-gray-800 hover:text-white hover:border-gray-400 transition-all flex items-center justify-center"
+                    >
+                        <Home className="w-4 h-4 mr-2" /> MAIN MENU
+                    </button>
+                </div>
               </div>
           </div>
       );
@@ -510,12 +518,20 @@ export const HUD: React.FC = () => {
                      </div>
                 </div>
 
-                <button 
-                  onClick={() => { audio.init(); restartGame(); }}
-                  className="px-8 md:px-12 py-4 md:py-5 bg-white text-black font-black text-lg md:text-xl rounded hover:scale-105 transition-all shadow-[0_0_40px_rgba(255,255,255,0.3)] tracking-widest"
-                >
-                    NEW RUN
-                </button>
+                <div className="flex flex-col space-y-4 w-full max-w-xs items-center">
+                    <button 
+                    onClick={() => { audio.init(); restartGame(); }}
+                    className="w-full px-8 py-4 bg-white text-black font-black text-lg md:text-xl rounded hover:scale-105 transition-all shadow-[0_0_40px_rgba(255,255,255,0.3)] tracking-widest"
+                    >
+                        NEW RUN
+                    </button>
+                    <button 
+                    onClick={() => { audio.init(); showMenu(); }}
+                    className="w-full px-8 py-3 bg-transparent border border-gray-600 text-gray-400 font-bold text-lg rounded hover:bg-gray-800 hover:text-white hover:border-gray-400 transition-all flex items-center justify-center"
+                    >
+                        <Home className="w-4 h-4 mr-2" /> MAIN MENU
+                    </button>
+                </div>
             </div>
         </div>
     );

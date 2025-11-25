@@ -24,6 +24,7 @@ export enum ObjectType {
   MISSILE = 'MISSILE',
   POWERUP_INVINCIBILITY = 'POWERUP_INVINCIBILITY',
   POWERUP_SCORE_MULTIPLIER = 'POWERUP_SCORE_MULTIPLIER',
+  FALLING_TREE = 'FALLING_TREE',
 }
 
 export interface GameObject {
@@ -39,6 +40,11 @@ export interface GameObject {
   powerUpType?: 'INVINCIBILITY' | 'SCORE_MULTIPLIER';
   isSnowball?: boolean; // For wide obstacles
   rotation?: [number, number, number]; // For objects like fallen pawns
+  
+  // Falling Tree Properties
+  fallDirection?: number; // 1 (Right) or -1 (Left)
+  fallProgress?: number; // 0 to 1
+  hasTriggered?: boolean;
 }
 
 export const LANE_WIDTH = 2.2;
