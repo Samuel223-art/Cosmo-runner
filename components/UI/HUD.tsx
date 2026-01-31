@@ -234,10 +234,24 @@ const ShopScreen: React.FC = () => {
                         </h2>
                         <p className="text-gray-400 font-mono text-xs md:text-sm tracking-wider mt-1">AUTHORIZED PERSONNEL ONLY</p>
                      </div>
-                     <div className="flex items-center bg-black/60 px-4 md:px-6 py-2 md:py-3 rounded-xl border border-yellow-500/30">
-                         <Diamond className="w-5 h-5 md:w-6 md:h-6 text-yellow-400 mr-2 md:mr-3 animate-pulse" />
-                         <span className="text-xl md:text-2xl font-bold font-mono text-yellow-400">{score.toLocaleString()}</span>
-                         <span className="text-xs text-yellow-600 ml-2 font-bold tracking-widest">PEARLS</span>
+                     
+                     <div className="flex flex-col md:flex-row items-center gap-4">
+                        <div className="flex items-center bg-black/60 px-4 md:px-6 py-2 md:py-3 rounded-xl border border-yellow-500/30">
+                            <Diamond className="w-5 h-5 md:w-6 md:h-6 text-yellow-400 mr-2 md:mr-3 animate-pulse" />
+                            <span className="text-xl md:text-2xl font-bold font-mono text-yellow-400">{score.toLocaleString()}</span>
+                            <span className="text-xs text-yellow-600 ml-2 font-bold tracking-widest">PEARLS</span>
+                        </div>
+                        
+                        {/* Top Continue Button */}
+                        <button 
+                            onClick={closeShop}
+                            className="group relative px-6 py-2 md:py-3 bg-transparent border-2 border-cyan-500/50 text-cyan-400 font-black text-sm md:text-base rounded-none hover:bg-cyan-500 hover:text-black transition-all duration-300 font-cyber tracking-[0.2em] overflow-hidden"
+                        >
+                            <span className="relative z-10 flex items-center gap-2">
+                                CONTINUE <Play className="w-4 h-4 fill-current" />
+                            </span>
+                            <div className="absolute inset-0 bg-cyan-400/20 transform -skew-x-12 translate-x-full group-hover:translate-x-0 transition-transform duration-300" />
+                        </button>
                      </div>
                  </div>
 

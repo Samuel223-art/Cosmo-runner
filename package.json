@@ -1,7 +1,8 @@
+
 {
-  "name": "copy-of-zones-runner-1",
+  "name": "zones-runner",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -10,20 +11,22 @@
   },
   "dependencies": {
     "react": "^19.2.0",
-    "lucide-react": "^0.553.0",
     "react-dom": "^19.2.0",
-    "@react-three/postprocessing": "^3.0.4",
-    "@react-three/fiber": "^9.4.0",
-    "zustand": "^5.0.8",
-    "uuid": "^13.0.0",
-    "@react-three/drei": "^10.7.7",
     "three": "^0.181.1",
-    "postprocessing": "^6.38.0"
+    "@react-three/fiber": "^9.4.0",
+    "@react-three/drei": "^10.7.7",
+    "@react-three/postprocessing": "^3.0.4",
+    "postprocessing": "^6.38.0",
+    "zustand": "^5.0.8",
+    "lucide-react": "^0.553.0",
+    "uuid": "^13.0.0"
   },
   "devDependencies": {
-    "@types/node": "^22.14.0",
-    "@vitejs/plugin-react": "^5.0.0",
-    "typescript": "~5.8.2",
-    "vite": "^6.2.0"
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "@types/three": "^0.169.0",
+    "@vitejs/plugin-react": "^4.2.1",
+    "typescript": "^5.2.2",
+    "vite": "^5.0.0"
   }
 }
