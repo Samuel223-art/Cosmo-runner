@@ -182,11 +182,13 @@ export const Player: React.FC = () => {
       if (status !== GameStatus.PLAYING) return;
       const maxLane = Math.floor(laneCount / 2);
 
-      if (e.key === 'ArrowLeft') setLane(l => Math.max(l - 1, -maxLane));
-      else if (e.key === 'ArrowRight') setLane(l => Math.min(l + 1, maxLane));
-      else if (e.key === 'ArrowUp' || e.key === 'w' || e.key === ' ') triggerJump();
-      else if (e.key === 'ArrowDown' || e.key === 's') triggerSlide();
-      else if (e.key === 'Enter') activateInvincibilityAbility();
+      const key = e.key.toLowerCase();
+
+      if (key === 'arrowleft' || key === 'a') setLane(l => Math.max(l - 1, -maxLane));
+      else if (key === 'arrowright' || key === 'd') setLane(l => Math.min(l + 1, maxLane));
+      else if (key === 'arrowup' || key === 'w' || key === ' ') triggerJump();
+      else if (key === 'arrowdown' || key === 's') triggerSlide();
+      else if (key === 'enter') activateInvincibilityAbility();
     };
 
     window.addEventListener('keydown', handleKeyDown);

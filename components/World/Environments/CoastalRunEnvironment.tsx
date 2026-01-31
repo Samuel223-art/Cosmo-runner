@@ -25,7 +25,7 @@ const WaterFloor = () => {
 
     const uniforms = useMemo(() => ({
         uTime: { value: 0 },
-        uColor: { value: new THREE.Color('#00aaff') },
+        uColor: { value: new THREE.Color('#330000') }, // Darker reddish-wine water
         uWaveSpeed: { value: 0.8 },
         uWaveFrequency: { value: new THREE.Vector2(6, 3) },
         uWaveHeight: { value: 0.1 },
@@ -98,10 +98,10 @@ const WaterFloor = () => {
                         vec2 r = vec2(snoise(uv + 4.0 * q + vec2(1.7, 9.2) - t), snoise(uv + 2.0 * q + vec2(8.3, 2.8)));
                         float n = snoise(uv + 4.0 * r);
                         float caustic = smoothstep(0.65, 0.85, n * 0.5 + 0.5); 
-                        vec3 deepColor = vec3(0.0, 0.3, 0.7);
-                        vec3 shallowColor = vec3(0.0, 0.8, 0.9);
+                        vec3 deepColor = uColor;
+                        vec3 shallowColor = vec3(0.8, 0.1, 0.1); // Crimson shallow
                         vec3 finalColor = mix(deepColor, shallowColor, vElevation / uWaveHeight * 0.5 + 0.5);
-                        finalColor += vec3(0.8, 0.9, 1.0) * caustic * 0.6;
+                        finalColor += vec3(1.0, 0.8, 0.6) * caustic * 0.4; // Sunlight caustics reflect sky warmth
                         float fresnel = 1.0 - abs(vElevation / uWaveHeight);
                         gl_FragColor = vec4(finalColor, 0.7 + fresnel * 0.3);
                     }
@@ -159,7 +159,7 @@ const FoamParticles = () => {
     return (
         <instancedMesh ref={instancedMeshRef} args={[undefined, undefined, particles.length]}>
             <dodecahedronGeometry args={[0.5, 0]} />
-            <meshBasicMaterial color="#ccffff" transparent opacity={0.4} blending={THREE.AdditiveBlending} />
+            <meshBasicMaterial color="#ffcccc" transparent opacity={0.4} blending={THREE.AdditiveBlending} />
         </instancedMesh>
     );
 };
@@ -185,8 +185,8 @@ const BeachTerrain = () => {
     useMemo(() => {
         const { position } = terrainGeo.attributes;
         const colors: number[] = [];
-        const sandColor = new THREE.Color('#c2b280');
-        const grassColor = new THREE.Color('#3A5F0B');
+        const sandColor = new THREE.Color('#442222'); // Reddish sand
+        const grassColor = new THREE.Color('#550000'); // Dead crimson grass
         for (let i = 0; i < position.count; i++) {
             const height = position.getZ(i);
             const t = THREE.MathUtils.smoothstep(height, 0, 2.5);
@@ -223,8 +223,8 @@ const LowPolyTrees = () => {
 
     const trunkGeo = useMemo(() => new THREE.CylinderGeometry(0.1, 0.2, 1.5, 4), []);
     const leavesGeo = useMemo(() => new THREE.IcosahedronGeometry(0.8, 0), []);
-    const trunkMat = useMemo(() => new THREE.MeshStandardMaterial({ color: '#6e4a2e' }), []);
-    const leavesMat = useMemo(() => new THREE.MeshStandardMaterial({ color: '#2E8B57', flatShading: true }), []);
+    const trunkMat = useMemo(() => new THREE.MeshStandardMaterial({ color: '#2e1e1a' }), []);
+    const leavesMat = useMemo(() => new THREE.MeshStandardMaterial({ color: '#770000', flatShading: true }), []);
 
     return (
         <group>
@@ -444,7 +444,7 @@ const Seagull: React.FC<{ data: SeagullProps, onComplete: () => void }> = ({ dat
 };
 
 
-const CoastalParticles = () => <CrystalCaveParticles color="#00ffff" />;
+const CoastalParticles = () => <CrystalCaveParticles color="#ff4400" />;
 
 const DistantIslands = React.forwardRef<THREE.Group, { position: [number, number, number] }>((props, ref) => {
     const islands = useMemo(() => {
@@ -464,7 +464,7 @@ const DistantIslands = React.forwardRef<THREE.Group, { position: [number, number
              {islands.map((m, i) => (
                  <mesh key={i} position={m.pos as any} scale={m.scale as any}>
                      <dodecahedronGeometry args={[1, 0]} />
-                     <meshStandardMaterial color="#1e293b" roughness={1} fog={true} />
+                     <meshStandardMaterial color="#1e0000" roughness={1} fog={true} />
                  </mesh>
              ))}
         </group>
@@ -497,7 +497,7 @@ const ParallaxMountains = React.forwardRef<THREE.Group, { position: [number, num
              {mountains.map((m, i) => (
                  <mesh key={i} position={m.pos as any} scale={m.scale as any} rotation={m.rot as any}>
                      <tetrahedronGeometry args={[1, 0]} />
-                     <meshStandardMaterial color="#1e1b4b" roughness={0.9} fog={true} />
+                     <meshStandardMaterial color="#2e0000" roughness={0.9} fog={true} />
                  </mesh>
              ))}
         </group>
@@ -542,9 +542,9 @@ const DynamicSkyClouds = () => {
                         float n = noise(uv + vec2(t, t * 0.5));
                         n += 0.5 * noise(uv * 2.0 + vec2(-t, t));
                         float cloud = smoothstep(0.4, 0.8, n);
-                        vec3 skyColor = vec3(0.53, 0.81, 0.92); 
-                        vec3 cloudColor = vec3(1.0, 0.9, 0.95); 
-                        cloudColor += vec3(0.2, 0.1, 0.3) * cloud;
+                        vec3 skyColor = vec3(0.5, 0.0, 0.0); // Deep red sky
+                        vec3 cloudColor = vec3(0.8, 0.1, 0.0); // Bright crimson clouds
+                        cloudColor += vec3(0.3, 0.0, 0.0) * cloud;
                         vec3 finalColor = mix(skyColor, cloudColor, cloud * 0.8);
                         gl_FragColor = vec4(finalColor, 1.0); 
                     }
@@ -572,12 +572,12 @@ const CoastalContent = React.forwardRef<THREE.Group, { position: [number, number
             <group position={[0, 0.02, 0]}>
                  <mesh receiveShadow position={[0, -0.02, -150]} rotation={[-Math.PI / 2, 0, 0]}>
                     <planeGeometry args={[laneCount * LANE_WIDTH, 400]} />
-                    <meshStandardMaterial color={'#080808'} />
+                    <meshStandardMaterial color={'#110000'} />
                 </mesh>
                 {separators.map((x, i) => (
                     <mesh key={`sep-${i}`} position={[x, 0, -150]} rotation={[-Math.PI / 2, 0, 0]}>
                         <planeGeometry args={[0.05, 400]} />
-                        <meshBasicMaterial color={'#00aaff'} transparent opacity={0.4} />
+                        <meshBasicMaterial color={'#ff0000'} transparent opacity={0.4} />
                     </mesh>
                 ))}
             </group>
@@ -643,10 +643,10 @@ const CoastalRunEnvironment = () => {
 
     return (
         <>
-            <fog attach="fog" args={['#87CEEB', 150, 350]} />
-            <ambientLight intensity={0.7} color="#ffffff" />
-            <directionalLight castShadow position={[50, 50, 20]} intensity={2.0} color="#ffffdd" shadow-mapSize={[1024, 1024]} />
-            <directionalLight position={[-50, 20, -20]} intensity={0.5} color="#aaddff" />
+            <fog attach="fog" args={['#440000', 150, 350]} />
+            <ambientLight intensity={0.7} color="#ff3333" />
+            <directionalLight castShadow position={[50, 50, 20]} intensity={2.0} color="#ff4400" shadow-mapSize={[1024, 1024]} />
+            <directionalLight position={[-50, 20, -20]} intensity={0.5} color="#440000" />
             <DynamicSkyClouds />
 
             <group>
